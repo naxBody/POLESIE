@@ -23,6 +23,17 @@ $categories = [];
 $allMaterials = [];
 $availableCombinations = []; // Доступные комбинации свойств по подкатегориям
 
+// Загрузка остатков из базы данных
+$warehouseQuantities = [];
+try {
+    $stmt = $pdo->query("SELECT article, current_quantity FROM warehouse_materials WHERE is_active = TRUE");
+    while ($row = $stmt->fetch()) {
+        $warehouseQuantities[$row['article']] = $row['current_quantity'];
+    }
+} catch (Exception $e) {
+    // Если таблица не существует или ошибка - продолжаем без количеств
+}
+
 if (file_exists($jsonPath)) {
     $jsonData = file_get_contents($jsonPath);
     $materialsData = json_decode($jsonData, true);
@@ -36,6 +47,8 @@ if (file_exists($jsonPath)) {
                     foreach ($subcategory['materials'] as $material) {
                         $material['parent_category'] = $category;
                         $material['subcategory'] = $subcategory;
+                        // Добавляем количество из склада
+                        $material['warehouse_quantity'] = $warehouseQuantities[$material['code_internal']] ?? null;
                         $allMaterials[] = $material;
                     }
                 }
@@ -491,6 +504,32 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     color: var(--text-primary);
 }
 
+.quantity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.quantity-badge-high {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.quantity-badge-medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.quantity-badge-low {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
 .material-badges {
     display: flex;
     gap: 6px;
@@ -887,13 +926,62 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                             if (is_array($value)) {
                                 $value = implode(', ', array_slice($value, 0, 3)) . (count($value) > 3 ? '...' : '');
                             }
+                            // Перевод ключей спецификаций на русский язык
+                            $specLabels = [
+                                'material_grade' => 'Марка',
+                                'standard_doc' => 'Стандарт',
+                                'product_form' => 'Форма',
+                                'diameter_mm' => 'Диаметр',
+                                'length_m' => 'Длина',
+                                'length_mm' => 'Длина',
+                                'thickness_mm' => 'Толщина',
+                                'width_mm' => 'Ширина',
+                                'strength_class' => 'Кл. прочности',
+                                'coating' => 'Покрытие',
+                                'thread_diameter_mm' => 'Диаметр резьбы',
+                                'density_kg_m3' => 'Плотность',
+                                'tensile_strength_mpa' => 'Прочность',
+                                'yield_strength_mpa' => 'Предел текуч.',
+                                'hardness_hb' => 'Твёрдость HB',
+                                'hardness_hrc' => 'Твёрдость HRC',
+                                'temperature_range_c' => 'Темп. диапазон',
+                                'viscosity_sec_20C' => 'Вязкость',
+                                'solid_content_percent' => 'Сухое вещество %',
+                                'flash_point_c' => 'Темп. вспышки',
+                                'shelf_life_months' => 'Срок хранения',
+                                'packaging' => 'Упаковка',
+                                'color' => 'Цвет',
+                                'application' => 'Применение'
+                            ];
+                            $label = $specLabels[$key] ?? ucfirst(str_replace('_', ' ', $key));
                         ?>
                             <div class="spec-row">
-                                <span class="spec-label"><?= e(ucfirst(str_replace('_', ' ', $key))) ?></span>
+                                <span class="spec-label"><?= e($label) ?></span>
                                 <span class="spec-value"><?= is_array($value) ? e(implode(', ', array_slice($value, 0, 3))) : e($value) ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    
+                    <?php 
+                    // Определение цвета бейджа количества
+                    $qtyClass = 'quantity-badge-medium';
+                    $qtyIcon = '📦';
+                    $qtyText = 'Нет данных';
+                    if ($material['warehouse_quantity'] !== null) {
+                        $qty = floatval($material['warehouse_quantity']);
+                        $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
+                        if ($qty <= 10) {
+                            $qtyClass = 'quantity-badge-low';
+                            $qtyIcon = '⚠️';
+                        } elseif ($qty <= 50) {
+                            $qtyClass = 'quantity-badge-medium';
+                            $qtyIcon = '📦';
+                        } else {
+                            $qtyClass = 'quantity-badge-high';
+                            $qtyIcon = '✅';
+                        }
+                    }
+                    ?>
                     
                     <div class="material-badges">
                         <?php if (!empty($material['is_critical'])): ?>
@@ -902,7 +990,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <?php if (!empty($material['requires_cert'])): ?>
                             <span class="badge-cert">📄 Сертификат</span>
                         <?php endif; ?>
-                        <span style="font-size: 11px; color: var(--text-muted);">📦 <?= e($material['base_unit']) ?></span>
+                        <span class="quantity-badge <?= $qtyClass ?>"><?= $qtyIcon ?> <?= $qtyText ?></span>
                     </div>
                 </div>
             <?php endforeach; ?>
