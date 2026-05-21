@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/includes/auth.php';
 session_start();
 
 // Если уже авторизован - перенаправляем на главную
@@ -109,6 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
-    <script src="../assets/js/main.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

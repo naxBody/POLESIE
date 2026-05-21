@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
@@ -139,5 +140,6 @@ include '../../includes/topbar.php';
     </div>
 </div>
 
+    <script src="../../assets/js/main.js"></script>
 </body>
 </html>
