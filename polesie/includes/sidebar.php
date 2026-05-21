@@ -86,19 +86,19 @@
         <!-- Склад -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Склад</div>
-            <a href="../warehouse/materials.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/materials') !== false ? 'active' : '' ?>">
+            <a href="../modules/warehouse/materials.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/materials') !== false ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📦</span>
                 <span>Материалы</span>
             </a>
-            <a href="warehouse/list.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/list') !== false ? 'active' : '' ?>">
+            <a href="../modules/warehouse/list.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/list') !== false ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🏭</span>
                 <span>Остатки на складе</span>
             </a>
-            <a href="warehouse/docs.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/docs') !== false ? 'active' : '' ?>">
+            <a href="../modules/warehouse/docs.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/docs') !== false ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📚</span>
                 <span>Документы и справочники</span>
             </a>
-            <a href="warehouse/transactions.php" class="sidebar-nav-item">
+            <a href="../modules/warehouse/transactions.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📝</span>
                 <span>Движение</span>
             </a>
