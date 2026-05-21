@@ -1,1 +1,1 @@
-Nothing needs to be added to the .gitignore file based on the provided file changes, as only a PHP source file was modified and no build artifacts, dependencies, or temporary files were included in the changes.
+Nothing should be ignored based on the provided file changes. The deleted file `polesie/modules/orders/warehouse/materials.php` is a PHP source file which should not be added to .gitignore, and there are no build artifacts, dependencies, or temporary files in the changes that would warrant adding ignore rules.
