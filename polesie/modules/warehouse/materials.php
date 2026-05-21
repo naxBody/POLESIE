@@ -895,16 +895,230 @@ function openMaterialModal(material) {
     nameEl.textContent = material.name_full;
     
     const specs = material.specifications || {};
+    
+    // Словарь перевода ключей характеристик на русский язык
+    const specLabels = {
+        'material_grade': 'Марка материала',
+        'standard_doc': 'Нормативный документ',
+        'product_form': 'Форма изделия',
+        'diameter_mm': 'Диаметр (мм)',
+        'length_m': 'Длина (м)',
+        'thickness_mm': 'Толщина (мм)',
+        'width_mm': 'Ширина (мм)',
+        'length_mm': 'Длина (мм)',
+        'treatment': 'Обработка',
+        'density_kg_m3': 'Плотность (кг/м³)',
+        'tensile_strength_mpa': 'Временное сопротивление (МПа)',
+        'yield_strength_mpa': 'Предел текучести (МПа)',
+        'alloy_elements': 'Легирующие элементы',
+        'weight_per_piece_kg': 'Вес одной штуки (кг)',
+        'hardness_hb': 'Твёрдость (HB)',
+        'chemical_composition': 'Химический состав',
+        'application': 'Применение',
+        'elongation_percent': 'Относительное удлинение (%)',
+        'product_type': 'Тип продукта',
+        'mark': 'Марка',
+        'conductor_material': 'Материал проводника',
+        'conductor_diameter_mm': 'Диаметр проводника (мм)',
+        'insulation_type': 'Тип изоляции',
+        'thermal_class': 'Класс нагревостойкости',
+        'voltage_test_v': 'Испытательное напряжение (В)',
+        'elongation_percent_min': 'Мин. относительное удлинение (%)',
+        'adherence_test': 'Испытание на адгезию',
+        'resistance_ohm_km_20C': 'Сопротивление (Ом/км при 20°C)',
+        'heat_shock_resistance': 'Термостойкость',
+        'chemical_resistance': 'Химическая стойкость',
+        'electrical_resistivity_ohm_mm2_m': 'Удельное электросопротивление (Ом·мм²/м)',
+        'core_type': 'Тип сердечника',
+        'core_material': 'Материал сердечника',
+        'core_dimensions_mm': 'Размеры сердечника (мм)',
+        'stack_factor': 'Коэффициент заполнения',
+        'specific_loss_w_kg': 'Удельные потери (Вт/кг)',
+        'magnetic_induction_t': 'Магнитная индукция (Тл)',
+        'coating_type': 'Тип покрытия',
+        'polymer_type': 'Тип полимера',
+        'color': 'Цвет',
+        'operating_temp_c': 'Рабочая температура (°C)',
+        'shelf_life_months': 'Срок хранения (мес)',
+        'viscosity_pa_s': 'Вязкость (Па·с)',
+        'solid_content_percent': 'Содержание сухого вещества (%)',
+        'acid_number_mg_koh': 'Кислотное число (мг КОН/г)',
+        'saponification_value': 'Число омыления',
+        'iodine_value': 'Йодное число',
+        'flash_point_c': 'Температура вспышки (°C)',
+        'pour_point_c': 'Температура застывания (°C)',
+        'kinematic_viscosity_cst': 'Кинематическая вязкость (сСт)',
+        'base_oil': 'Базовое масло',
+        'thickener_type': 'Тип загустителя',
+        'nlgi_grade': 'Класс NLGI',
+        'dropping_point_c': 'Температура каплепадения (°C)',
+        'four_ball_weld_load_kg': 'Нагрузка сваривания (4 шара, кг)',
+        'four_ball_scars_mm': 'Диаметр пятна износа (4 шара, мм)',
+        'grease_color': 'Цвет смазки',
+        'penetration_0_1mm': 'Пенетрация (0,1 мм)',
+        'ep_additives': 'EP-присадки',
+        'anti_wear_additives': 'Противоизносные присадки',
+        'corrosion_inhibitors': 'Ингибиторы коррозии',
+        'antioxidants': 'Антиокислители',
+        'demulsifier': 'Деэмульгатор',
+        'foam_inhibitor': 'Противопенная присадка',
+        'rust_prevention': 'Защита от ржавления',
+        'water_washout_percent': 'Вымываемость водой (%)',
+        'sprayability': 'Распыляемость',
+        'air_release_min': 'Время releases воздуха (мин)',
+        'demulsibility_min': 'Деэмульгируемость (мин)',
+        'copper_corrosion': 'Коррозия меди',
+        'oxidation_stability': 'Окислительная стабильность',
+        'evaporation_loss_percent': 'Потери на испарение (%)',
+        'low_temp_fluidity': 'Низкотемпературная текучесть',
+        'high_temp_performance': 'Высокотемпературные свойства',
+        'load_capacity': 'Несущая способность',
+        'wear_protection': 'Защита от износа',
+        'friction_coefficient': 'Коэффициент трения',
+        'compatibility': 'Совместимость',
+        'filterability': 'Фильтруемость',
+        'hydrolytic_stability': 'Гидролитическая стабильность',
+        'microbial_resistance': 'Микробиологическая стойкость',
+        'seal_compatibility': 'Совместимость с уплотнениями',
+        'paint_compatibility': 'Совместимость с красками',
+        'noise_level': 'Уровень шума',
+        'dielectric_strength_kv': 'Электрическая прочность (кВ)',
+        'dielectric_constant': 'Диэлектрическая проницаемость',
+        'dissipation_factor': 'Тангенс угла диэлектрических потерь',
+        'volume_resistivity_ohm_cm': 'Объёмное удельное сопротивление (Ом·см)',
+        'surface_resistivity_ohm': 'Поверхностное удельное сопротивление (Ом)',
+        'arc_resistance_sec': 'Дуговая стойкость (сек)',
+        'comparative_tracking_index_v': 'Сравнительный индекс трекингообразования (В)',
+        'flame_retardancy': 'Огнестойкость',
+        'ul94_rating': 'Рейтинг UL94',
+        'oxygen_index_percent': 'Кислородный индекс (%)',
+        'smoke_density': 'Плотность дыма',
+        'toxicity_index': 'Индекс токсичности',
+        'uv_resistance': 'УФ-стойкость',
+        'weather_resistance': 'Атмосферостойкость',
+        'cold_resistance': 'Морозостойкость',
+        'heat_aging_resistance': 'Термовозрастная стойкость',
+        'hydrolysis_resistance': 'Стойкость к гидролизу',
+        'chemical_resistance_acids': 'Химическая стойкость (кислоты)',
+        'chemical_resistance_alkalis': 'Химическая стойкость (щёлочи)',
+        'chemical_resistance_solvents': 'Химическая стойкость (растворители)',
+        'chemical_resistance_oils': 'Химическая стойкость (масла)',
+        'abrasion_resistance': 'Износостойкость',
+        'impact_strength': 'Ударная прочность',
+        'flexural_strength_mpa': 'Предел прочности при изгибе (МПа)',
+        'flexural_modulus_mpa': 'Модуль упругости при изгибе (МПа)',
+        'compressive_strength_mpa': 'Предел прочности при сжатии (МПа)',
+        'compressive_modulus_mpa': 'Модуль упругости при сжатии (МПа)',
+        'shear_strength_mpa': 'Предел прочности при сдвиге (МПа)',
+        'peel_strength_n_mm': 'Прочность на отслаивание (Н/мм)',
+        'lap_shear_strength_mpa': 'Прочность нахлёсточного соединения (МПа)',
+        'cure_time_min': 'Время отверждения (мин)',
+        'cure_temp_c': 'Температура отверждения (°C)',
+        'pot_life_min': 'Время жизни смеси (мин)',
+        'mix_ratio': 'Пропорция смешивания',
+        'shelf_life_years': 'Срок хранения (лет)',
+        'storage_temp_c': 'Температура хранения (°C)',
+        'humidity_limit_percent': 'Предельная влажность (%)',
+        'light_fastness': 'Светостойкость',
+        'washability': 'Моющаяся способность',
+        'scrub_resistance': 'Стойкость к истиранию',
+        'hiding_power': 'Укрывистость',
+        'gloss_level': 'Уровень глянца',
+        'dry_time_min': 'Время высыхания (мин)',
+        'recoat_time_min': 'Время до повторного нанесения (мин)',
+        'through_dry_time_h': 'Время полного высыхания (ч)',
+        'primer_required': 'Требуется грунтовка',
+        'topcoat_required': 'Требуется финишное покрытие',
+        'intercoat_adhesion': 'Межслойная адгезия',
+        'overcoatable': 'Возможность перекрытия',
+        'sandability': 'Шлифуемость',
+        'brushability': 'Способность к нанесению кистью',
+        'rollability': 'Способность к нанесению валиком',
+        'sprayability_viscosity': 'Распыляемость (вязкость)',
+        'transfer_efficiency_percent': 'Эффективность переноса (%)',
+        'overspray_percent': 'Перерасход (%)',
+        'film_thickness_um': 'Толщина плёнки (мкм)',
+        'dry_film_thickness_um': 'Толщина сухой плёнки (мкм)',
+        'wet_film_thickness_um': 'Толщина влажной плёнки (мкм)',
+        'coverage_m2_l': 'Расход (м²/л)',
+        'theoretical_coverage_m2_l': 'Теоретический расход (м²/л)',
+        'practical_coverage_m2_l': 'Практический расход (м²/л)',
+        'voc_g_l': 'ЛОС (г/л)',
+        'solvent_content_percent': 'Содержание растворителя (%)',
+        'water_content_percent': 'Содержание воды (%)',
+        'ph_value': 'Значение pH',
+        'conductivity_us_cm': 'Электропроводность (мкСм/см)',
+        'turbidity_ntu': 'Мутность (NTU)',
+        'total_dissolved_solids_ppm': 'Общее солесодержание (ppm)',
+        'suspended_solids_ppm': 'Взвешенные вещества (ppm)',
+        'biochemical_oxygen_demand_mg_l': 'БПК (мг/л)',
+        'chemical_oxygen_demand_mg_l': 'ХПК (мг/л)',
+        'total_organic_carbon_ppm': 'Общий органический углерод (ppm)',
+        'heavy_metals_ppm': 'Тяжёлые металлы (ppm)',
+        'chloride_ppm': 'Хлориды (ppm)',
+        'sulfate_ppm': 'Сульфаты (ppm)',
+        'nitrate_ppm': 'Нитраты (ppm)',
+        'phosphate_ppm': 'Фосфаты (ppm)',
+        'ammonia_ppm': 'Аммиак (ppm)',
+        'fluoride_ppm': 'Фториды (ppm)',
+        'cyanide_ppm': 'Цианиды (ppm)',
+        'phenol_ppm': 'Фенолы (ppm)',
+        'oil_grease_ppm': 'Нефтепродукты (ppm)',
+        'surfactants_ppm': 'ПАВ (ppm)',
+        'pesticides_ppm': 'Пестициды (ppm)',
+        'bacteria_cfu_ml': 'Бактерии (КОЕ/мл)',
+        'yeast_mold_cfu_ml': 'Дрожжи и плесень (КОЕ/мл)',
+        'coliform_count': 'Колиформные бактерии',
+        'e_coli': 'Кишечная палочка',
+        'salmonella': 'Сальмонелла',
+        'staphylococcus': 'Стафилококк',
+        'endotoxin_eu_ml': 'Эндотоксин (ЕД/мл)',
+        'particulate_matter': 'Твёрдые частицы',
+        'sterility': 'Стерильность',
+        'pyrogenicity': 'Пирогенность',
+        'biocompatibility': 'Биосовместимость',
+        'cytotoxicity': 'Цитотоксичность',
+        'sensitization': 'Сенсибилизация',
+        'irritation': 'Раздражение',
+        'genotoxicity': 'Генотоксичность',
+        'carcinogenicity': 'Канцерогенность',
+        'mutagenicity': 'Мутагенность',
+        'teratogenicity': 'Тератогенность',
+        'reproductive_toxicity': 'Репродуктивная токсичность',
+        'developmental_toxicity': 'Токсичность для развития',
+        'neurotoxicity': 'Нейротоксичность',
+        'immunotoxicity': 'Иммунотоксичность',
+        'hepatotoxicity': 'Гепатотоксичность',
+        'nephrotoxicity': 'Нефротоксичность',
+        'cardiotoxicity': 'Кардиотоксичность',
+        'pulmonary_toxicity': 'Пульмонологическая токсичность',
+        'dermal_toxicity': 'Дермальная токсичность',
+        'ocular_toxicity': 'Окулярная токсичность',
+        'inhalation_toxicity': 'Ингаляционная токсичность',
+        'oral_toxicity': 'Оральная токсичность',
+        'intravenous_toxicity': 'Внутривенная токсичность',
+        'intramuscular_toxicity': 'Внутримышечная токсичность',
+        'subcutaneous_toxicity': 'Подкожная токсичность',
+        'intraperitoneal_toxicity': 'Внутрибрюшинная токсичность',
+        'topical_toxicity': 'Топическая токсичность',
+        'chronic_toxicity': 'Хроническая токсичность',
+        'subchronic_toxicity': 'Субхроническая токсичность',
+        'acute_toxicity': 'Острая токсичность'
+    };
+    
     let specsHtml = '';
     for (const [key, value] of Object.entries(specs)) {
         let displayValue = value;
         if (Array.isArray(value)) {
             displayValue = value.join(', ');
         } else if (typeof value === 'object') {
-            displayValue = JSON.stringify(value, null, 2);
+            // Для объектов (как химический состав) форматируем красиво
+            const objEntries = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
+            displayValue = objEntries;
         }
         
-        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Получаем русское название или оставляем как есть (преобразуя _)
+        const label = specLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         specsHtml += `
             <div class="spec-item">
                 <span class="spec-item-label">${label}</span>
@@ -984,6 +1198,41 @@ function closeMaterialModal(event) {
 function printMaterial() {
     if (!currentMaterial) return;
     
+    // Словарь перевода ключей характеристик на русский язык (для печати)
+    const specLabels = {
+        'material_grade': 'Марка материала',
+        'standard_doc': 'Нормативный документ',
+        'product_form': 'Форма изделия',
+        'diameter_mm': 'Диаметр (мм)',
+        'length_m': 'Длина (м)',
+        'thickness_mm': 'Толщина (мм)',
+        'width_mm': 'Ширина (мм)',
+        'length_mm': 'Длина (мм)',
+        'treatment': 'Обработка',
+        'density_kg_m3': 'Плотность (кг/м³)',
+        'tensile_strength_mpa': 'Временное сопротивление (МПа)',
+        'yield_strength_mpa': 'Предел текучести (МПа)',
+        'alloy_elements': 'Легирующие элементы',
+        'weight_per_piece_kg': 'Вес одной штуки (кг)',
+        'hardness_hb': 'Твёрдость (HB)',
+        'chemical_composition': 'Химический состав',
+        'application': 'Применение',
+        'elongation_percent': 'Относительное удлинение (%)',
+        'product_type': 'Тип продукта',
+        'mark': 'Марка',
+        'conductor_material': 'Материал проводника',
+        'conductor_diameter_mm': 'Диаметр проводника (мм)',
+        'insulation_type': 'Тип изоляции',
+        'thermal_class': 'Класс нагревостойкости',
+        'voltage_test_v': 'Испытательное напряжение (В)',
+        'elongation_percent_min': 'Мин. относительное удлинение (%)',
+        'adherence_test': 'Испытание на адгезию',
+        'resistance_ohm_km_20C': 'Сопротивление (Ом/км при 20°C)',
+        'heat_shock_resistance': 'Термостойкость',
+        'chemical_resistance': 'Химическая стойкость',
+        'electrical_resistivity_ohm_mm2_m': 'Удельное электросопротивление (Ом·мм²/м)'
+    };
+    
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -1008,12 +1257,15 @@ function printMaterial() {
             
             <div class="section">
                 <div class="section-title">Характеристики</div>
-                ${Object.entries(currentMaterial.specifications || {}).map(([key, value]) => `
+                ${Object.entries(currentMaterial.specifications || {}).map(([key, value]) => {
+                    const label = specLabels[key] || key.replace(/_/g, ' ');
+                    const displayValue = Array.isArray(value) ? value.join(', ') : (typeof value === 'object' ? Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ') : value);
+                    return `
                     <div class="spec-row">
-                        <span class="spec-label">${key.replace(/_/g, ' ')}</span>
-                        <span class="spec-value">${Array.isArray(value) ? value.join(', ') : value}</span>
-                    </div>
-                `).join('')}
+                        <span class="spec-label">${label}</span>
+                        <span class="spec-value">${displayValue}</span>
+                    </div>`;
+                }).join('')}
             </div>
             
             <div class="section">
