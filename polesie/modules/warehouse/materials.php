@@ -1853,7 +1853,7 @@ function extractGostNumber(gostString) {
     // Удаляем "ГОСТ " и всё после года (если есть)
     const match = gostString.match(/ГОСТ\s*([0-9.]+)(?:-([0-9]+))?/i);
     if (match) {
-        return match[1] + (match[2] ? '-' + match[2] : '');
+        return match[1];
     }
     return null;
 }
@@ -1865,12 +1865,9 @@ function generateGostLink(gostString) {
         return '#';
     }
     
-    // Путь к локальным файлам ГОСТ
-    const localPath = '../../assets/gosts/gost_' + gostNumber + '.pdf';
-    
-    // Проверяем существование локального файла через AJAX
-    // Если файл существует - открываем локально, иначе - внешний ресурс
-    return localPath;
+    // Используем внешний ресурс для поиска ГОСТов
+    // Можно заменить на локальную папку с документами, если они будут скачаны
+    return `https://docs.cntd.ru/document/${gostNumber.replace('.', '-')}`;
 }
 
 // Закрытие модального окна по ESC
