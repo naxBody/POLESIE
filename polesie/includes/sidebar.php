@@ -94,6 +94,10 @@
                 <span class="sidebar-nav-icon">🏭</span>
                 <span>Остатки на складе</span>
             </a>
+            <a href="warehouse/docs.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/docs') !== false ? 'active' : '' ?>">
+                <span class="sidebar-nav-icon">📚</span>
+                <span>Документы и справочники</span>
+            </a>
             <a href="warehouse/transactions.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📝</span>
                 <span>Движение</span>
