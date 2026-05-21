@@ -103,6 +103,10 @@ $notificationCount = count($notificationList);
         box-shadow: var(--shadow);
         border-left: 4px solid var(--primary-color);
     }
+        .standard-card-link:hover .standard-card {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
     
     .standard-header {
         display: flex;
@@ -292,14 +296,22 @@ $notificationCount = count($notificationList);
                         
                         <div class="standards-grid" id="standardsGrid">
                             <?php foreach ($gostStandards as $gost): ?>
-                            <div class="standard-card" data-gost="<?= e(strtolower($gost['gost_number'])) ?>" data-title="<?= e(strtolower($gost['title'])) ?>">
-                                <div class="standard-header">
-                                    <span class="standard-number"><?= e($gost['gost_number']) ?></span>
-                                    <span class="standard-status status-active"><?= e($gost['status']) ?></span>
+                            <?php 
+                                // Генерируем ссылку на ГОСТ
+                                $gostNumber = preg_replace('/ГОСТ\s*([0-9.]+).*/i', '$1', $gost['gost_number']);
+                                $gostNumber = str_replace('.', '-', $gostNumber);
+                                $gostLink = 'https://docs.cntd.ru/document/' . $gostNumber;
+                            ?>
+                            <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
+                                <div class="standard-card" data-gost="<?= e(strtolower($gost['gost_number'])) ?>" data-title="<?= e(strtolower($gost['title'])) ?>">
+                                    <div class="standard-header">
+                                        <span class="standard-number"><?= e($gost['gost_number']) ?></span>
+                                        <span class="standard-status status-active\"><?= e($gost['status']) ?></span>
+                                    </div>
+                                    <div class="standard-title"><?= e($gost['title']) ?></div>
+                                    <div class="standard-category">📁 <?= e($gost['category']) ?></div>
                                 </div>
-                                <div class="standard-title"><?= e($gost['title']) ?></div>
-                                <div class="standard-category">📁 <?= e($gost['category']) ?></div>
-                            </div>
+                            </a>
                             <?php endforeach; ?>
                         </div>
                     </div>
