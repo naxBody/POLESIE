@@ -4,7 +4,7 @@
  * Модуль управления заказами
  */
 
-require_once '../../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 session_start();
 
 if (!isLoggedIn()) {
