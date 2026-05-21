@@ -86,13 +86,13 @@
         <!-- Склад -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Склад</div>
-            <a href="warehouse/materials.php" class="sidebar-nav-item">
+            <a href="warehouse/materials.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/materials') !== false ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📦</span>
                 <span>Материалы</span>
             </a>
-            <a href="warehouse/products.php" class="sidebar-nav-item">
+            <a href="warehouse/list.php" class="sidebar-nav-item <?= strpos($_SERVER['PHP_SELF'], 'warehouse/list') !== false ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🏭</span>
-                <span>Готовая продукция</span>
+                <span>Остатки на складе</span>
             </a>
             <a href="warehouse/transactions.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📝</span>
