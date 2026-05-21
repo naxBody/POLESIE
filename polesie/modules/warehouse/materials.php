@@ -665,6 +665,17 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     color: var(--text-primary);
 }
 
+.gost-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.gost-link:hover {
+    text-decoration: underline;
+    color: var(--primary-dark);
+}
+
 @media (max-width: 768px) {
     .filters-grid {
         grid-template-columns: 1fr;
@@ -1613,12 +1624,29 @@ function openMaterialModal(material) {
         
         // Получаем русское название или оставляем как есть (преобразуя _)
         const label = specLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        specsHtml += `
-            <div class="spec-item">
-                <span class="spec-item-label">${label}</span>
-                <span class="spec-item-value">${escapeHtml(displayValue)}</span>
-            </div>
-        `;
+        
+        // Если это standard_doc, делаем его кликабельным
+        if (key === 'standard_doc' && typeof value === 'string' && value.includes('ГОСТ')) {
+            const gostNumber = extractGostNumber(value);
+            const gostLink = generateGostLink(value);
+            specsHtml += `
+                <div class="spec-item">
+                    <span class="spec-item-label">${label}</span>
+                    <span class="spec-item-value">
+                        <a href="${gostLink}" target="_blank" class="gost-link" title="Открыть документ ГОСТ">
+                            ${escapeHtml(value)} ↗
+                        </a>
+                    </span>
+                </div>
+            `;
+        } else {
+            specsHtml += `
+                <div class="spec-item">
+                    <span class="spec-item-label">${label}</span>
+                    <span class="spec-item-value">${escapeHtml(displayValue)}</span>
+                </div>
+            `;
+        }
     }
     
     bodyEl.innerHTML = `
@@ -1818,6 +1846,28 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Функция извлечения номера ГОСТ из строки стандарта
+function extractGostNumber(gostString) {
+    // Удаляем "ГОСТ " и всё после года (если есть)
+    const match = gostString.match(/ГОСТ\s*([0-9.]+)(?:-([0-9]+))?/i);
+    if (match) {
+        return match[1];
+    }
+    return null;
+}
+
+// Функция генерации ссылки на ГОСТ
+function generateGostLink(gostString) {
+    const gostNumber = extractGostNumber(gostString);
+    if (!gostNumber) {
+        return '#';
+    }
+    
+    // Используем внешний ресурс для поиска ГОСТов
+    // Можно заменить на локальную папку с документами, если они будут скачаны
+    return `https://docs.cntd.ru/document/${gostNumber.replace('.', '-')}`;
 }
 
 // Закрытие модального окна по ESC
