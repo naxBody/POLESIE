@@ -1006,11 +1006,32 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                     <th>Марка</th>
                     <th>Стандарт</th>
                     <th>Ед.</th>
+                    <th>На складе</th>
                     <th>Статус</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($filteredMaterials as $material): ?>
+                    <?php 
+                    // Определение цвета бейджа количества для таблицы
+                    $qtyClass = 'quantity-badge-medium';
+                    $qtyIcon = '📦';
+                    $qtyText = 'Нет данных';
+                    if ($material['warehouse_quantity'] !== null) {
+                        $qty = floatval($material['warehouse_quantity']);
+                        $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
+                        if ($qty <= 10) {
+                            $qtyClass = 'quantity-badge-low';
+                            $qtyIcon = '⚠️';
+                        } elseif ($qty <= 50) {
+                            $qtyClass = 'quantity-badge-medium';
+                            $qtyIcon = '📦';
+                        } else {
+                            $qtyClass = 'quantity-badge-high';
+                            $qtyIcon = '✅';
+                        }
+                    }
+                    ?>
                     <tr onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)" style="cursor: pointer;">
                         <td><code><?= e($material['code_internal']) ?></code></td>
                         <td>
@@ -1024,6 +1045,9 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <td><?= e($material['specifications']['material_grade'] ?? '—') ?></td>
                         <td><small><?= e($material['specifications']['standard_doc'] ?? '—') ?></small></td>
                         <td><?= e($material['base_unit']) ?></td>
+                        <td>
+                            <span class="quantity-badge <?= $qtyClass ?>" style="font-size: 11px;"><?= $qtyIcon ?> <?= $qtyText ?></span>
+                        </td>
                         <td>
                             <?php if (!empty($material['is_critical'])): ?>
                                 <span class="badge badge-danger">Ответств.</span>
