@@ -1,6 +1,6 @@
 <?php
 /**
- * Справочник материалов - полный каталог с фильтрацией
+ * Справочник материалов - полный каталог с фильтрацией и выбором свойств
  * ОАО "Полесьеэлектромаш"
  */
 
@@ -21,6 +21,7 @@ $jsonPath = BASE_PATH . '/../list_materials.json';
 $materialsData = [];
 $categories = [];
 $allMaterials = [];
+$availableCombinations = []; // Доступные комбинации свойств по подкатегориям
 
 if (file_exists($jsonPath)) {
     $jsonData = file_get_contents($jsonPath);
@@ -37,6 +38,10 @@ if (file_exists($jsonPath)) {
                         $material['subcategory'] = $subcategory;
                         $allMaterials[] = $material;
                     }
+                }
+                // Сохраняем доступные комбинации свойств
+                if (isset($subcategory['available_combinations'])) {
+                    $availableCombinations[$subcategory['id']] = $subcategory['available_combinations'];
                 }
             }
         }
@@ -146,6 +151,57 @@ if ($filterCert !== '') {
     });
 }
 
+// Фильтр по диаметру (для болтов, прутков и т.д.)
+$filterDiameter = $_GET['diameter'] ?? '';
+if ($filterDiameter !== '') {
+    $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterDiameter) {
+        $specs = $m['specifications'] ?? [];
+        $diameter = $specs['thread_diameter_mm'] ?? $specs['diameter_mm'] ?? $specs['conductor_diameter_mm'] ?? $specs['nominal_diameter_mm'] ?? null;
+        if ($diameter === null) return false;
+        // Для числовых значений сравниваем как числа
+        if (is_numeric($filterDiameter) && is_numeric($diameter)) {
+            return floatval($diameter) == floatval($filterDiameter);
+        }
+        return $diameter == $filterDiameter;
+    });
+}
+
+// Фильтр по длине
+$filterLength = $_GET['length'] ?? '';
+if ($filterLength !== '') {
+    $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterLength) {
+        $specs = $m['specifications'] ?? [];
+        $length = $specs['length_mm'] ?? $specs['length_m'] ?? null;
+        if ($length === null) return false;
+        // length_mm может быть массивом или单个 значением
+        if (is_array($length)) {
+            return in_array($filterLength, $length);
+        }
+        if (is_numeric($filterLength) && is_numeric($length)) {
+            return floatval($length) == floatval($filterLength);
+        }
+        return $length == $filterLength;
+    });
+}
+
+// Фильтр по классу прочности
+$filterStrengthClass = $_GET['strength_class'] ?? '';
+if ($filterStrengthClass !== '') {
+    $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterStrengthClass) {
+        $specs = $m['specifications'] ?? [];
+        return isset($specs['strength_class']) && $specs['strength_class'] === $filterStrengthClass;
+    });
+}
+
+// Фильтр по покрытию
+$filterCoating = $_GET['coating'] ?? '';
+if ($filterCoating !== '') {
+    $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterCoating) {
+        $specs = $m['specifications'] ?? [];
+        return isset($specs['coating']) && $specs['coating'] === $filterCoating;
+    });
+}
+
 // Сортировка
 $sortBy = $_GET['sort'] ?? 'name';
 $sortOrder = $_GET['order'] ?? 'asc';
@@ -181,6 +237,9 @@ $notifications = $pdo->prepare("
 $notifications->execute([$user['id']]);
 $notificationList = $notifications->fetchAll();
 $notificationCount = count($notificationList);
+
+// Подготовка данных о комбинациях свойств для JS
+$availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -243,6 +302,10 @@ $notificationCount = count($notificationList);
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.dynamic-filter {
+    display: none;
 }
 
 .filter-label {
@@ -599,7 +662,7 @@ $notificationCount = count($notificationList);
                 
                 <div class="filter-group">
                     <label class="filter-label">Категория</label>
-                    <select name="category" class="filter-select">
+                    <select name="category" class="filter-select" id="categorySelect" onchange="updatePropertyFilters()">
                         <option value="">Все категории</option>
                         <?php foreach ($categories as $cat): ?>
                             <?php if (isset($cat['subcategories'])): ?>
@@ -611,6 +674,35 @@ $notificationCount = count($notificationList);
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <!-- Динамические фильтры свойств -->
+                <div class="filter-group dynamic-filter" id="diameterFilter" style="display: none;">
+                    <label class="filter-label">Диаметр (мм)</label>
+                    <select name="diameter" class="filter-select" id="diameterSelect" onchange="this.form.submit()">
+                        <option value="">Все</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group dynamic-filter" id="lengthFilter" style="display: none;">
+                    <label class="filter-label">Длина (мм)</label>
+                    <select name="length" class="filter-select" id="lengthSelect" onchange="this.form.submit()">
+                        <option value="">Все</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group dynamic-filter" id="strengthClassFilter" style="display: none;">
+                    <label class="filter-label">Класс прочности</label>
+                    <select name="strength_class" class="filter-select" id="strengthClassSelect" onchange="this.form.submit()">
+                        <option value="">Все</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group dynamic-filter" id="coatingFilter" style="display: none;">
+                    <label class="filter-label">Покрытие</label>
+                    <select name="coating" class="filter-select" id="coatingSelect" onchange="this.form.submit()">
+                        <option value="">Все</option>
                     </select>
                 </div>
                 
@@ -683,7 +775,7 @@ $notificationCount = count($notificationList);
                 <button type="submit" class="btn btn-primary">Применить фильтры</button>
                 <a href="materials.php" class="btn btn-outline">Сбросить</a>
                 
-                <?php if ($filterSearch || $filterCategory || $filterGrade || $filterStandard || $filterForm || $filterCritical || $filterCert): ?>
+                <?php if ($filterSearch || $filterCategory || $filterGrade || $filterStandard || $filterForm || $filterCritical || $filterCert || $filterDiameter || $filterLength || $filterStrengthClass || $filterCoating): ?>
                     <div class="active-filters">
                         <span style="font-size: 13px; color: var(--text-secondary); align-self: center;">Активные фильтры:</span>
                         <?php if ($filterSearch): ?>
@@ -708,6 +800,30 @@ $notificationCount = count($notificationList);
                             <span class="filter-chip">
                                 Категория: <?= e($catName) ?>
                                 <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'category', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
+                            </span>
+                        <?php endif; ?>
+                        <?php if ($filterDiameter): ?>
+                            <span class="filter-chip">
+                                Диаметр: <?= e($filterDiameter) ?> мм
+                                <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'diameter', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
+                            </span>
+                        <?php endif; ?>
+                        <?php if ($filterLength): ?>
+                            <span class="filter-chip">
+                                Длина: <?= e($filterLength) ?> мм
+                                <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'length', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
+                            </span>
+                        <?php endif; ?>
+                        <?php if ($filterStrengthClass): ?>
+                            <span class="filter-chip">
+                                Класс прочности: <?= e($filterStrengthClass) ?>
+                                <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'strength_class', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
+                            </span>
+                        <?php endif; ?>
+                        <?php if ($filterCoating): ?>
+                            <span class="filter-chip">
+                                Покрытие: <?= e($filterCoating) ?>
+                                <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'coating', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
                             </span>
                         <?php endif; ?>
                         <?php if ($filterGrade): ?>
@@ -857,7 +973,117 @@ $notificationCount = count($notificationList);
 </div>
 
 <script>
+// Данные о доступных комбинациях свойств из PHP
+const availableCombinations = <?= $availableCombinationsJson ?>;
+
 let currentMaterial = null;
+
+// Функция обновления фильтров свойств при выборе категории
+function updatePropertyFilters() {
+    const categorySelect = document.getElementById('categorySelect');
+    const selectedCategory = categorySelect.value;
+    
+    // Скрываем все динамические фильтры
+    document.querySelectorAll('.dynamic-filter').forEach(filter => {
+        filter.style.display = 'none';
+    });
+    
+    // Если категория не выбрана, выходим
+    if (!selectedCategory) {
+        return;
+    }
+    
+    // Получаем доступные комбинации для выбранной категории
+    const combinations = availableCombinations[selectedCategory];
+    if (!combinations) {
+        return;
+    }
+    
+    // Заполняем и показываем фильтр диаметра
+    if (combinations.thread_diameter_mm || combinations.diameter_mm || combinations.conductor_diameter_mm || combinations.nominal_diameter_mm) {
+        const diameterSelect = document.getElementById('diameterSelect');
+        const diameterFilter = document.getElementById('diameterFilter');
+        diameterSelect.innerHTML = '<option value="">Все</option>';
+        
+        let diameters = combinations.thread_diameter_mm || combinations.diameter_mm || combinations.conductor_diameter_mm || combinations.nominal_diameter_mm || [];
+        if (Array.isArray(diameters)) {
+            diameters.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d;
+                option.textContent = d + ' мм';
+                diameterSelect.appendChild(option);
+            });
+        }
+        diameterFilter.style.display = 'flex';
+    }
+    
+    // Заполняем и показываем фильтр длины
+    if (combinations.length_mm) {
+        const lengthSelect = document.getElementById('lengthSelect');
+        const lengthFilter = document.getElementById('lengthFilter');
+        lengthSelect.innerHTML = '<option value="">Все</option>';
+        
+        let lengths = combinations.length_mm;
+        if (typeof lengths === 'object' && !Array.isArray(lengths)) {
+            // Если длины зависят от диаметра, берём все уникальные значения
+            const allLengths = new Set();
+            Object.values(lengths).forEach(lenArray => {
+                if (Array.isArray(lenArray)) {
+                    lenArray.forEach(l => allLengths.add(l));
+                }
+            });
+            lengths = Array.from(allLengths).sort((a, b) => a - b);
+        }
+        if (Array.isArray(lengths)) {
+            lengths.forEach(l => {
+                const option = document.createElement('option');
+                option.value = l;
+                option.textContent = l + ' мм';
+                lengthSelect.appendChild(option);
+            });
+        }
+        lengthFilter.style.display = 'flex';
+    }
+    
+    // Заполняем и показываем фильтр класса прочности
+    if (combinations.strength_class) {
+        const strengthSelect = document.getElementById('strengthClassSelect');
+        const strengthFilter = document.getElementById('strengthClassFilter');
+        strengthSelect.innerHTML = '<option value="">Все</option>';
+        
+        if (Array.isArray(combinations.strength_class)) {
+            combinations.strength_class.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = s;
+                strengthSelect.appendChild(option);
+            });
+        }
+        strengthFilter.style.display = 'flex';
+    }
+    
+    // Заполняем и показываем фильтр покрытия
+    if (combinations.coating) {
+        const coatingSelect = document.getElementById('coatingSelect');
+        const coatingFilter = document.getElementById('coatingFilter');
+        coatingSelect.innerHTML = '<option value="">Все</option>';
+        
+        if (Array.isArray(combinations.coating)) {
+            combinations.coating.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c;
+                option.textContent = c;
+                coatingSelect.appendChild(option);
+            });
+        }
+        coatingFilter.style.display = 'flex';
+    }
+}
+
+// Вызываем при загрузке страницы, если категория уже выбрана
+document.addEventListener('DOMContentLoaded', function() {
+    updatePropertyFilters();
+});
 
 function setView(view) {
     const grid = document.getElementById('materialsGrid');
