@@ -505,29 +505,31 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
 }
 
 .quantity-badge {
-    display: inline-flex;
+    display: inline;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-top: 8px;
+    gap: 0;
+    padding: 0;
+    border-radius: 0;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 0;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 .quantity-badge-high {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 .quantity-badge-medium {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 .quantity-badge-low {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: transparent;
+    color: var(--danger-color);
 }
 
 .material-badges {
@@ -965,20 +967,16 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                     <?php 
                     // Определение цвета бейджа количества
                     $qtyClass = 'quantity-badge-medium';
-                    $qtyIcon = '📦';
                     $qtyText = 'Нет данных';
                     if ($material['warehouse_quantity'] !== null) {
                         $qty = floatval($material['warehouse_quantity']);
                         $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
                         if ($qty <= 10) {
                             $qtyClass = 'quantity-badge-low';
-                            $qtyIcon = '⚠️';
                         } elseif ($qty <= 50) {
                             $qtyClass = 'quantity-badge-medium';
-                            $qtyIcon = '📦';
                         } else {
                             $qtyClass = 'quantity-badge-high';
-                            $qtyIcon = '✅';
                         }
                     }
                     ?>
@@ -990,7 +988,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <?php if (!empty($material['requires_cert'])): ?>
                             <span class="badge-cert">📄 Сертификат</span>
                         <?php endif; ?>
-                        <span class="quantity-badge <?= $qtyClass ?>"><?= $qtyIcon ?> <?= $qtyText ?></span>
+                        <span class="quantity-badge <?= $qtyClass ?>"><?= $qtyText ?></span>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -1015,20 +1013,16 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                     <?php 
                     // Определение цвета бейджа количества для таблицы
                     $qtyClass = 'quantity-badge-medium';
-                    $qtyIcon = '📦';
                     $qtyText = 'Нет данных';
                     if ($material['warehouse_quantity'] !== null) {
                         $qty = floatval($material['warehouse_quantity']);
                         $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
                         if ($qty <= 10) {
                             $qtyClass = 'quantity-badge-low';
-                            $qtyIcon = '⚠️';
                         } elseif ($qty <= 50) {
                             $qtyClass = 'quantity-badge-medium';
-                            $qtyIcon = '📦';
                         } else {
                             $qtyClass = 'quantity-badge-high';
-                            $qtyIcon = '✅';
                         }
                     }
                     ?>
@@ -1046,7 +1040,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <td><small><?= e($material['specifications']['standard_doc'] ?? '—') ?></small></td>
                         <td><?= e($material['base_unit']) ?></td>
                         <td>
-                            <span class="quantity-badge <?= $qtyClass ?>" style="font-size: 11px;"><?= $qtyIcon ?> <?= $qtyText ?></span>
+                            <span class="quantity-badge <?= $qtyClass ?>" style="font-size: 13px;"><?= $qtyText ?></span>
                         </td>
                         <td>
                             <?php if (!empty($material['is_critical'])): ?>
