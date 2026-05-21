@@ -7,36 +7,36 @@ USE `polesie_production`;
 
 -- ============================================
 -- Создание тестовых пользователей
--- Пароли хэшированы через password_hash() с PASSWORD_DEFAULT
+-- Пароли хранятся в открытом виде (без хеширования)
 -- ============================================
 
 -- Администратор (admin / admin123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Администратор Системы', 'admin@polesie.by', '+375 29 111-11-11', 1, 'IT отдел', 'Системный администратор', TRUE);
+VALUES ('admin', 'admin123', 'Администратор Системы', 'admin@polesie.by', '+375 29 111-11-11', 1, 'IT отдел', 'Системный администратор', TRUE);
 
 -- Менеджер по продажам (manager / manager123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Иванов Иван Иванович', 'ivanov@polesie.by', '+375 29 222-22-22', 2, 'Отдел продаж', 'Менеджер по продажам', TRUE);
+VALUES ('manager', 'manager123', 'Иванов Иван Иванович', 'ivanov@polesie.by', '+375 29 222-22-22', 2, 'Отдел продаж', 'Менеджер по продажам', TRUE);
 
 -- Технолог (technologist / tech123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('technologist', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Петров Пётр Петрович', 'petrov@polesie.by', '+375 29 333-33-33', 3, 'Производственный отдел', 'Ведущий технолог', TRUE);
+VALUES ('technologist', 'tech123', 'Петров Пётр Петрович', 'petrov@polesie.by', '+375 29 333-33-33', 3, 'Производственный отдел', 'Ведущий технолог', TRUE);
 
 -- Инспектор ОТК (inspector / inspect123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('inspector', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Сидорова Анна Владимировна', 'sidorova@polesie.by', '+375 29 444-44-44', 4, 'Отдел технического контроля', 'Инспектор ОТК', TRUE);
+VALUES ('inspector', 'inspect123', 'Сидорова Анна Владимировна', 'sidorova@polesie.by', '+375 29 444-44-44', 4, 'Отдел технического контроля', 'Инспектор ОТК', TRUE);
 
 -- Кладовщик (storekeeper / store123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('storekeeper', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Козлов Дмитрий Сергеевич', 'kozlov@polesie.by', '+375 29 555-55-55', 5, 'Складское хозяйство', 'Заведующий складом', TRUE);
+VALUES ('storekeeper', 'store123', 'Козлов Дмитрий Сергеевич', 'kozlov@polesie.by', '+375 29 555-55-55', 5, 'Складское хозяйство', 'Заведующий складом', TRUE);
 
 -- Рабочий (worker / worker123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('worker', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Новиков Александр Андреевич', 'novikov@polesie.by', '+375 29 666-66-66', 6, 'Производственный цех №1', 'Электромонтёр 5 разряда', TRUE);
+VALUES ('worker', 'worker123', 'Новиков Александр Андреевич', 'novikov@polesie.by', '+375 29 666-66-66', 6, 'Производственный цех №1', 'Электромонтёр 5 разряда', TRUE);
 
 -- Руководитель (director / director123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `email`, `phone`, `role_id`, `department`, `position`, `is_active`) 
-VALUES ('director', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Директоров Директор Директорович', 'director@polesie.by', '+375 29 777-77-77', 7, 'Дирекция', 'Генеральный директор', TRUE);
+VALUES ('director', 'director123', 'Директоров Директор Директорович', 'director@polesie.by', '+375 29 777-77-77', 7, 'Дирекция', 'Генеральный директор', TRUE);
 
 -- ============================================
 -- Тестовые контрагенты
@@ -141,27 +141,5 @@ INSERT INTO `warehouse_products` (`product_id`, `quantity`, `location`, `batch_n
 (1, 25, 'Склад готовой продукции, Секция А', 'BATCH-2024-001', '2024-01-15', '2026-01-15'),
 (2, 18, 'Склад готовой продукции, Секция А', 'BATCH-2024-002', '2024-01-10', '2026-01-10'),
 (8, 12, 'Склад готовой продукции, Секция Б', 'BATCH-2024-003', '2024-01-12', '2026-01-12');
-
--- ============================================
--- Обновление паролей пользователей на корректные хэши
--- ============================================
-
--- Примечание: Для реального использования необходимо сгенерировать правильные хэши
--- через PHP функцию password_hash(). Ниже приведены примеры для тестовых паролей.
-
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'admin';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'manager';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'technologist';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'inspector';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'storekeeper';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'worker';
-UPDATE `users` SET `password_hash` = '$2y$10$rBWJfHkXh8zGqQJzV5qYp.vL8MhKJZ9xNxT5nF6vP8qR2sT4uW6yZe' WHERE `username` = 'director';
-
--- Для упрощения входа установим одинаковый хэш для всех тестовых пользователей
--- Пароль: admin123 (или любой другой общий пароль для тестирования)
--- Хэш для пароля "admin123":
-SET @common_hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
-
-UPDATE `users` SET `password_hash` = @common_hash;
 
 COMMIT;

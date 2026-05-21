@@ -18,7 +18,8 @@ function login($username, $password) {
     $stmt->execute([$username]);
     $user = $stmt->fetch();
     
-    if ($user && password_verify($password, $user['password_hash'])) {
+    // Простое сравнение паролей без хеширования
+    if ($user && $password === $user['password_hash']) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['role_code'] = $user['role_code'];
@@ -64,8 +65,8 @@ function registerUser($data) {
             throw new Exception('Пользователь с таким именем уже существует');
         }
         
-        // Хэширование пароля
-        $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+        // Пароль без хеширования (простой текст)
+        $passwordPlain = $data['password'];
         
         // Вставка пользователя
         $stmt = $pdo->prepare("
@@ -75,7 +76,7 @@ function registerUser($data) {
         
         $stmt->execute([
             $data['username'],
-            $passwordHash,
+            $passwordPlain,
             $data['full_name'],
             $data['email'] ?? null,
             $data['phone'] ?? null,
@@ -151,19 +152,18 @@ function updateUser($userId, $data) {
 function changePassword($userId, $oldPassword, $newPassword) {
     $pdo = getDbConnection();
     
-    // Проверка старого пароля
+    // Проверка старого пароля (простое сравнение)
     $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
     
-    if (!$user || !password_verify($oldPassword, $user['password_hash'])) {
+    if (!$user || $oldPassword !== $user['password_hash']) {
         return false;
     }
     
-    // Обновление пароля
-    $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    // Обновление пароля (без хеширования)
     $updateStmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-    $updateStmt->execute([$newHash, $userId]);
+    $updateStmt->execute([$newPassword, $userId]);
     
     logActivity('password_change', 'user', $userId);
     
