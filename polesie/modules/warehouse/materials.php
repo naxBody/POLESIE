@@ -13,6 +13,7 @@ if (!isLoggedIn()) {
 }
 
 $user = getCurrentUser();
+$pdo = getDbConnection();
 $pageTitle = 'Материалы';
 
 // Загрузка данных из JSON
@@ -170,9 +171,38 @@ usort($filteredMaterials, function($a, $b) use ($sortBy, $sortOrder) {
     return $sortOrder === 'desc' ? -$result : $result;
 });
 
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
+// Получение количества уведомлений
+$notifications = $pdo->prepare("
+    SELECT * FROM notifications 
+    WHERE user_id = ? AND is_read = FALSE 
+    ORDER BY created_at DESC 
+    LIMIT 10
+");
+$notifications->execute([$user['id']]);
+$notificationList = $notifications->fetchAll();
+$notificationCount = count($notificationList);
 ?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <?php include '../../includes/sidebar.php'; ?>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Верхняя панель -->
+            <?php include '../../includes/topbar.php'; ?>
+            
+            <!-- Контентная область -->
+            <div class="content-area">
 
 <style>
 .materials-page {
@@ -817,6 +847,11 @@ include '../../includes/topbar.php';
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeMaterialModal()">Закрыть</button>
             <button class="btn btn-primary" onclick="printMaterial()">🖨 Печать</button>
+        </div>
+    </div>
+</div>
+
+            </div>
         </div>
     </div>
 </div>
