@@ -1,0 +1,438 @@
+-- ============================================
+-- БАЗА ДАННЫХ СИСТЕМЫ УПРАВЛЕНИЯ ПРОИЗВОДСТВОМ
+-- ОАО "Полесьеэлектромаш" (Беларусь)
+-- ============================================
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+03:00"; -- Время Минска
+
+-- Создание базы данных
+CREATE DATABASE IF NOT EXISTS `polesie_production` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `polesie_production`;
+
+-- ============================================
+-- ТАБЛИЦЫ СПРАВОЧНИКОВ
+-- ============================================
+
+-- Статусы заказов
+CREATE TABLE `order_statuses` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `color` VARCHAR(20) DEFAULT '#007bff',
+  `sort_order` INT DEFAULT 0,
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Статусы производства
+CREATE TABLE `production_statuses` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `color` VARCHAR(20) DEFAULT '#28a745',
+  `sort_order` INT DEFAULT 0,
+  `is_active` BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Единицы измерения
+CREATE TABLE `units` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(50) NOT NULL,
+  `short_name` VARCHAR(20) NOT NULL,
+  `is_active` BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Категории продукции
+CREATE TABLE `product_categories` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(200) NOT NULL,
+  `parent_id` INT DEFAULT NULL,
+  `description` TEXT,
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`parent_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Типы операций контроля качества
+CREATE TABLE `quality_check_types` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `description` TEXT,
+  `is_mandatory` BOOLEAN DEFAULT TRUE,
+  `sort_order` INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Роли пользователей
+CREATE TABLE `user_roles` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `code` VARCHAR(50) NOT NULL UNIQUE,
+  `description` TEXT,
+  `permissions` JSON,
+  `is_active` BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- ОСНОВНЫЕ ТАБЛИЦЫ
+-- ============================================
+
+-- Пользователи системы
+CREATE TABLE `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `full_name` VARCHAR(200) NOT NULL,
+  `email` VARCHAR(100),
+  `phone` VARCHAR(20),
+  `role_id` INT NOT NULL,
+  `department` VARCHAR(100),
+  `position` VARCHAR(100),
+  `avatar` VARCHAR(255),
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `last_login` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`role_id`) REFERENCES `user_roles`(`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Контрагенты (заказчики, поставщики)
+CREATE TABLE `contractors` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(200) NOT NULL,
+  `inn` VARCHAR(12) NOT NULL UNIQUE,
+  `legal_address` TEXT,
+  `postal_address` TEXT,
+  `phone` VARCHAR(20),
+  `email` VARCHAR(100),
+  `contact_person` VARCHAR(200),
+  `contact_phone` VARCHAR(20),
+  `bank_name` VARCHAR(200),
+  `bik` VARCHAR(9),
+  `account_number` VARCHAR(20),
+  `type` ENUM('customer', 'supplier', 'both') DEFAULT 'customer',
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_inn` (`inn`),
+  INDEX `idx_type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Продукция (каталог изделий)
+CREATE TABLE `products` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `article` VARCHAR(50) NOT NULL UNIQUE,
+  `name` VARCHAR(200) NOT NULL,
+  `category_id` INT,
+  `description` TEXT,
+  `specifications` JSON,
+  `unit_id` INT,
+  `base_price` DECIMAL(15,2) DEFAULT 0.00,
+  `currency` CHAR(3) DEFAULT 'BYN',
+  `image` VARCHAR(255),
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`category_id`) REFERENCES `product_categories`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`) ON DELETE SET NULL,
+  INDEX `idx_article` (`article`),
+  INDEX `idx_category` (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Заказы
+CREATE TABLE `orders` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `order_number` VARCHAR(50) NOT NULL UNIQUE,
+  `contractor_id` INT NOT NULL,
+  `status_id` INT NOT NULL,
+  `order_date` DATE NOT NULL,
+  `delivery_date` DATE,
+  `delivery_address` TEXT,
+  `total_amount` DECIMAL(15,2) DEFAULT 0.00,
+  `currency` CHAR(3) DEFAULT 'BYN',
+  `payment_terms` TEXT,
+  `notes` TEXT,
+  `responsible_user_id` INT,
+  `contract_number` VARCHAR(50),
+  `contract_date` DATE,
+  `created_by` INT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`contractor_id`) REFERENCES `contractors`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`status_id`) REFERENCES `order_statuses`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`responsible_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE RESTRICT,
+  INDEX `idx_order_number` (`order_number`),
+  INDEX `idx_contractor` (`contractor_id`),
+  INDEX `idx_status` (`status_id`),
+  INDEX `idx_order_date` (`order_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Позиции заказа
+CREATE TABLE `order_items` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `order_id` INT NOT NULL,
+  `product_id` INT NOT NULL,
+  `quantity` DECIMAL(15,3) NOT NULL,
+  `unit_price` DECIMAL(15,2) NOT NULL,
+  `discount` DECIMAL(5,2) DEFAULT 0.00,
+  `total_price` DECIMAL(15,2) NOT NULL,
+  `notes` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE RESTRICT,
+  INDEX `idx_order` (`order_id`),
+  INDEX `idx_product` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Производственные задания
+CREATE TABLE `production_orders` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `production_number` VARCHAR(50) NOT NULL UNIQUE,
+  `order_item_id` INT,
+  `product_id` INT NOT NULL,
+  `quantity_planned` DECIMAL(15,3) NOT NULL,
+  `quantity_completed` DECIMAL(15,3) DEFAULT 0.00,
+  `status_id` INT NOT NULL,
+  `start_date` DATE,
+  `end_date_planned` DATE,
+  `end_date_actual` DATE,
+  `workshop` VARCHAR(100),
+  `brigade` VARCHAR(100),
+  `responsible_user_id` INT,
+  `technology_card` TEXT,
+  `notes` TEXT,
+  `created_by` INT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`order_item_id`) REFERENCES `order_items`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`status_id`) REFERENCES `production_statuses`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`responsible_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE RESTRICT,
+  INDEX `idx_production_number` (`production_number`),
+  INDEX `idx_product` (`product_id`),
+  INDEX `idx_status` (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Этапы производства
+CREATE TABLE `production_stages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `production_order_id` INT NOT NULL,
+  `stage_name` VARCHAR(200) NOT NULL,
+  `stage_number` INT NOT NULL,
+  `status` ENUM('pending', 'in_progress', 'completed', 'blocked') DEFAULT 'pending',
+  `started_at` TIMESTAMP NULL,
+  `completed_at` TIMESTAMP NULL,
+  `worker_id` INT,
+  `notes` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`production_order_id`) REFERENCES `production_orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`worker_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_production_order` (`production_order_id`),
+  INDEX `idx_stage_number` (`stage_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Контроль качества
+CREATE TABLE `quality_checks` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `production_order_id` INT NOT NULL,
+  `stage_id` INT,
+  `check_type_id` INT NOT NULL,
+  `inspector_id` INT NOT NULL,
+  `check_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `result` ENUM('passed', 'failed', 'conditional') NOT NULL,
+  `defects_found` TEXT,
+  `measurements` JSON,
+  `photos` JSON,
+  `comments` TEXT,
+  `is_rework_required` BOOLEAN DEFAULT FALSE,
+  `rework_completed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`production_order_id`) REFERENCES `production_orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`stage_id`) REFERENCES `production_stages`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`check_type_id`) REFERENCES `quality_check_types`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`inspector_id`) REFERENCES `users`(`id`) ON DELETE RESTRICT,
+  INDEX `idx_production_order` (`production_order_id`),
+  INDEX `idx_check_date` (`check_date`),
+  INDEX `idx_result` (`result`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Склад материалов и сырья
+CREATE TABLE `warehouse_materials` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `material_name` VARCHAR(200) NOT NULL,
+  `article` VARCHAR(50),
+  `category` VARCHAR(100),
+  `unit_id` INT,
+  `current_quantity` DECIMAL(15,3) DEFAULT 0.00,
+  `min_quantity` DECIMAL(15,3) DEFAULT 0.00,
+  `max_quantity` DECIMAL(15,3),
+  `location` VARCHAR(100),
+  `supplier_id` INT,
+  `last_purchase_price` DECIMAL(15,2),
+  `currency` CHAR(3) DEFAULT 'BYN',
+  `is_active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`supplier_id`) REFERENCES `contractors`(`id`) ON DELETE SET NULL,
+  INDEX `idx_article` (`article`),
+  INDEX `idx_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Движение склада (приход/расход)
+CREATE TABLE `warehouse_transactions` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `material_id` INT NOT NULL,
+  `transaction_type` ENUM('income', 'expense', 'adjustment', 'transfer') NOT NULL,
+  `quantity` DECIMAL(15,3) NOT NULL,
+  `balance_after` DECIMAL(15,3) NOT NULL,
+  `document_number` VARCHAR(50),
+  `document_type` VARCHAR(50),
+  `related_entity_id` INT,
+  `warehouse_from` INT,
+  `warehouse_to` INT,
+  `user_id` INT NOT NULL,
+  `notes` TEXT,
+  `transaction_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`material_id`) REFERENCES `warehouse_materials`(`id`) ON DELETE RESTRICT,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE RESTRICT,
+  INDEX `idx_material` (`material_id`),
+  INDEX `idx_transaction_type` (`transaction_type`),
+  INDEX `idx_transaction_date` (`transaction_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Готовая продукция на складе
+CREATE TABLE `warehouse_products` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `product_id` INT NOT NULL,
+  `quantity` DECIMAL(15,3) DEFAULT 0.00,
+  `location` VARCHAR(100),
+  `batch_number` VARCHAR(50),
+  `production_date` DATE,
+  `warranty_until` DATE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE RESTRICT,
+  UNIQUE KEY `unique_product_batch` (`product_id`, `batch_number`),
+  INDEX `idx_product` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Журнал событий (логирование)
+CREATE TABLE `activity_log` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT,
+  `action` VARCHAR(100) NOT NULL,
+  `entity_type` VARCHAR(50),
+  `entity_id` INT,
+  `old_values` JSON,
+  `new_values` JSON,
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_user` (`user_id`),
+  INDEX `idx_action` (`action`),
+  INDEX `idx_entity` (`entity_type`, `entity_id`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Настройки системы
+CREATE TABLE `system_settings` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `setting_key` VARCHAR(100) NOT NULL UNIQUE,
+  `setting_value` TEXT,
+  `setting_type` VARCHAR(20) DEFAULT 'string',
+  `description` TEXT,
+  `updated_by` INT,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`updated_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Уведомления
+CREATE TABLE `notifications` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `title` VARCHAR(200) NOT NULL,
+  `message` TEXT NOT NULL,
+  `type` ENUM('info', 'warning', 'error', 'success') DEFAULT 'info',
+  `is_read` BOOLEAN DEFAULT FALSE,
+  `link` VARCHAR(255),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  INDEX `idx_user` (`user_id`),
+  INDEX `idx_is_read` (`is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- НАЧАЛЬНЫЕ ДАННЫЕ
+-- ============================================
+
+-- Роли пользователей
+INSERT INTO `user_roles` (`name`, `code`, `description`, `permissions`) VALUES
+('Администратор', 'admin', 'Полный доступ ко всем функциям системы', '{"all": true}'),
+('Менеджер по продажам', 'sales_manager', 'Управление заказами и клиентами', '{"orders": ["read", "create", "update"], "contractors": ["read", "create", "update"], "products": ["read"]}'),
+('Технолог', 'technologist', 'Управление производственными процессами', '{"production": ["read", "create", "update"], "products": ["read", "update"], "quality": ["read"]}'),
+('Инспектор ОТК', 'quality_inspector', 'Контроль качества продукции', '{"quality": ["read", "create", "update"], "production": ["read"]}'),
+('Кладовщик', 'storekeeper', 'Управление складом', '{"warehouse": ["read", "create", "update"], "materials": ["read", "create", "update"]}'),
+('Производственный рабочий', 'worker', 'Выполнение производственных заданий', '{"production": ["read"], "tasks": ["update"]}'),
+('Руководитель', 'director', 'Просмотр отчетов и аналитики', '{"reports": ["read"], "dashboard": ["read"], "all": ["read"]}');
+
+-- Статусы заказов
+INSERT INTO `order_statuses` (`name`, `color`, `sort_order`) VALUES
+('Новый', '#007bff', 1),
+('Подтвержден', '#28a745', 2),
+('В производстве', '#ffc107', 3),
+('Готов к отгрузке', '#17a2b8', 4),
+('Отгружен', '#6c757d', 5),
+('Выполнен', '#28a745', 6),
+('Отменен', '#dc3545', 7);
+
+-- Статусы производства
+INSERT INTO `production_statuses` (`name`, `color`, `sort_order`) VALUES
+('Запланировано', '#6c757d', 1),
+('В работе', '#007bff', 2),
+('На контроле', '#ffc107', 3),
+('Завершено', '#28a745', 4),
+('Приостановлено', '#dc3545', 5);
+
+-- Единицы измерения
+INSERT INTO `units` (`name`, `short_name`) VALUES
+('Штука', 'шт'),
+('Комплект', 'компл'),
+('Метр', 'м'),
+('Килограмм', 'кг'),
+('Тонна', 'т'),
+('Литр', 'л');
+
+-- Категории продукции
+INSERT INTO `product_categories` (`name`, `description`) VALUES
+('Электродвигатели', 'Асинхронные и синхронные электродвигатели'),
+('Генераторы', 'Электрогенераторы различной мощности'),
+('Трансформаторы', 'Силовые и измерительные трансформаторы'),
+('Распределительное оборудование', 'Щиты управления и распределения'),
+('Запасные части', 'Компоненты и запчасти для электрооборудования');
+
+-- Типы проверок качества
+INSERT INTO `quality_check_types` (`name`, `description`, `is_mandatory`, `sort_order`) VALUES
+('Визуальный контроль', 'Проверка внешнего вида, отсутствия повреждений', TRUE, 1),
+('Измерение габаритов', 'Контроль размеров согласно чертежу', TRUE, 2),
+('Электрические испытания', 'Проверка электрических параметров', TRUE, 3),
+('Испытание изоляции', 'Проверка сопротивления изоляции', TRUE, 4),
+('Функциональное тестирование', 'Проверка работы изделия', TRUE, 5),
+('Климатические испытания', 'Проверка работы в различных условиях', FALSE, 6);
+
+-- Настройки системы
+INSERT INTO `system_settings` (`setting_key`, `setting_value`, `setting_type`, `description`) VALUES
+('company_name', 'ОАО "Полесьеэлектромаш"', 'string', 'Полное наименование предприятия'),
+('company_inn', '123456789', 'string', 'ИНН предприятия'),
+('company_address', 'Республика Беларусь, Гомельская область', 'string', 'Юридический адрес'),
+('company_phone', '+375 232 XX-XX-XX', 'string', 'Контактный телефон'),
+('company_email', 'info@polesie.by', 'string', 'Электронная почта'),
+('currency_default', 'BYN', 'string', 'Валюта по умолчанию'),
+('timezone', 'Europe/Minsk', 'string', 'Часовой пояс'),
+('language', 'ru', 'string', 'Язык интерфейса'),
+('items_per_page', '20', 'integer', 'Количество записей на странице');
+
+COMMIT;
