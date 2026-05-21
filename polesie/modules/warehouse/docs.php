@@ -297,10 +297,10 @@ $notificationCount = count($notificationList);
                         <div class="standards-grid" id="standardsGrid">
                             <?php foreach ($gostStandards as $gost): ?>
                             <?php 
-                                // Генерируем ссылку на ГОСТ
-                                $gostNumber = preg_replace('/ГОСТ\s*([0-9.]+).*/i', '$1', $gost['gost_number']);
-                                $gostNumber = str_replace('.', '-', $gostNumber);
-                                $gostLink = 'https://docs.cntd.ru/document/' . $gostNumber;
+                                // Генерируем ссылку на ГОСТ (локальный файл)
+                                $gostNumberFull = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gost['gost_number']);
+                                $gostFileName = 'gost_' . str_replace('.', '-', $gostNumberFull) . '.pdf';
+                                $gostLink = '../../assets/gosts/' . $gostFileName;
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
                                 <div class="standard-card" data-gost="<?= e(strtolower($gost['gost_number'])) ?>" data-title="<?= e(strtolower($gost['title'])) ?>">
