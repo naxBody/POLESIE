@@ -44,7 +44,9 @@ if (file_exists($materialsPath)) {
                         'category_ru' => $category['name_ru'],
                         'subcategory_ru' => $subcategory['name_ru'],
                         'pattern' => $combos['_code_format'],
-                        'description_ru' => $combos['_code_format_ru']
+                        'description_ru' => $combos['_code_format_ru'],
+                        'examples' => $combos['examples'] ?? [],
+                        'example_decoding' => $combos['example_decoding'] ?? []
                     ];
                 }
             }
@@ -266,13 +268,34 @@ $notificationCount = count($notificationList);
     
     .code-example {
         font-family: 'Courier New', monospace;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
         color: var(--text-primary);
         background: rgba(37, 99, 235, 0.1);
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 16px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+    
+    .example-decoding {
+        font-size: 12px;
+        color: var(--text-secondary);
+        padding-left: 8px;
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+    
+    .examples-section {
+        margin-top: 16px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 16px;
+    }
+    
+    .examples-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 12px;
     }
     
     .explanation-table {
@@ -401,7 +424,8 @@ $notificationCount = count($notificationList);
                              data-category="<?= e(strtolower($structure['category_ru'])) ?>" 
                              data-subcategory="<?= e(strtolower($structure['subcategory_ru'])) ?>"
                              data-pattern="<?= e(strtolower($structure['pattern'])) ?>"
-                             data-description="<?= e(strtolower($structure['description_ru'])) ?>">
+                             data-description="<?= e(strtolower($structure['description_ru'])) ?>"
+                             data-examples="<?= e(strtolower(implode(' ', $structure['examples'] ?? []))) ?>">
                             <h3 style="margin-bottom: 16px;">
                                 <?= e($structure['category_ru']) ?> → <?= e($structure['subcategory_ru']) ?>
                             </h3>
@@ -409,9 +433,29 @@ $notificationCount = count($notificationList);
                                 <div class="code-pattern">
                                     📐 Шаблон: <?= e($structure['pattern']) ?>
                                 </div>
-                                <div class="code-description">
+                                <div class="code-description" style="margin-bottom: 16px;">
                                     <?= e($structure['description_ru']) ?>
                                 </div>
+                                
+                                <?php if (!empty($structure['examples'])): ?>
+                                <div class="examples-section">
+                                    <h4 class="examples-title">
+                                        💡 Примеры кодов и расшифровка:
+                                    </h4>
+                                    <?php foreach ($structure['examples'] as $example): ?>
+                                    <div style="margin-bottom: 12px;">
+                                        <div class="code-example">
+                                            🔹 <?= e($example) ?>
+                                        </div>
+                                        <?php if (isset($structure['example_decoding'][$example])): ?>
+                                        <div class="example-decoding">
+                                            ↳ <?= e($structure['example_decoding'][$example]) ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -467,9 +511,10 @@ $notificationCount = count($notificationList);
             const subcategory = item.dataset.subcategory;
             const pattern = item.dataset.pattern;
             const description = item.dataset.description;
+            const examples = item.dataset.examples || '';
             
             if (category.includes(query) || subcategory.includes(query) || 
-                pattern.includes(query) || description.includes(query)) {
+                pattern.includes(query) || description.includes(query) || examples.includes(query)) {
                 item.style.display = 'block';
             } else {
                 item.style.display = 'none';
