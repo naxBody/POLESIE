@@ -18,17 +18,22 @@ define('APP_VERSION', '1.0.0');
 // Динамическое определение базового URL приложения
 // Определяем путь относительно корня проекта polesie
 $scriptPath = $_SERVER['SCRIPT_NAME'];
-// Находим позицию '/polesie/' в пути (регистронезависимый поиск)
-// Проект всегда находится в директории polesie (в нижнем или верхнем регистре)
-$pattern = '/polesie/';
-$polesiePos = stripos($scriptPath, $pattern); // Используем stripos для регистронезависимого поиска
-if ($polesiePos !== false) {
-    // Базовый путь - это всё до конца /polesie (включая саму директорию polesie)
-    $basePath = rtrim(substr($scriptPath, 0, $polesiePos + strlen($pattern)), '/');
+
+// Проверяем, есть ли в пути /POLESIE/polesie/ или /polesie/ (с учетом регистра)
+if (stripos($scriptPath, '/POLESIE/polesie/') !== false) {
+    // Случай когда путь содержит /POLESIE/polesie/
+    $pos = stripos($scriptPath, '/POLESIE/polesie/');
+    $basePath = rtrim(substr($scriptPath, 0, $pos + strlen('/POLESIE/polesie/')), '/');
+} elseif (stripos($scriptPath, '/polesie/') !== false) {
+    // Случай когда путь содержит /polesie/
+    $pos = stripos($scriptPath, '/polesie/');
+    $basePath = rtrim(substr($scriptPath, 0, $pos + strlen('/polesie/')), '/');
 } else {
-    // Если не нашли /polesie/, используем dirname
+    // Если не нашли, используем dirname
     $basePath = rtrim(dirname($scriptPath), '/');
 }
+
+// Нормализуем basePath
 if ($basePath === '' || $basePath === '/') {
     $basePath = '';
 }
@@ -249,12 +254,26 @@ function getSetting($key, $default = null) {
  * Получить URL для ассетов (CSS, JS, изображения)
  */
 function asset($path) {
-    return APP_URL . '/' . ltrim($path, '/');
+    // Убираем ведущий слэш если есть
+    $path = ltrim($path, '/');
+    // Проверяем, уже ли содержит APP_URL путь к polesie
+    if (stripos(APP_URL, '/polesie') !== false && stripos($path, 'polesie/') === 0) {
+        // Если APP_URL уже содержит /polesie и путь начинается с polesie/, убираем дублирование
+        $path = substr($path, strlen('polesie/'));
+    }
+    return APP_URL . '/' . $path;
 }
 
 /**
  * Получить URL для страниц
  */
 function pageUrl($path) {
-    return APP_URL . '/' . ltrim($path, '/');
+    // Убираем ведущий слэш если есть
+    $path = ltrim($path, '/');
+    // Проверяем, уже ли содержит APP_URL путь к polesie
+    if (stripos(APP_URL, '/polesie') !== false && stripos($path, 'polesie/') === 0) {
+        // Если APP_URL уже содержит /polesie и путь начинается с polesie/, убираем дублирование
+        $path = substr($path, strlen('polesie/'));
+    }
+    return APP_URL . '/' . $path;
 }
