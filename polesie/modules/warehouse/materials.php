@@ -1260,7 +1260,6 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                 <?php endforeach; ?>
             </tbody>
         </table>
-    <?php endif; ?>
 </div>
 
 <!-- Модальное окно материала -->
