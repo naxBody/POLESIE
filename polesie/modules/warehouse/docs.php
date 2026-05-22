@@ -366,9 +366,9 @@ $notificationCount = count($notificationList);
     .modal-window {
         background: var(--bg-primary);
         border-radius: var(--border-radius-lg);
-        padding: 32px;
+        padding: 24px;
         width: 100%;
-        max-width: 500px;
+        max-width: 420px;
         box-shadow: var(--shadow-xl);
         position: relative;
     }
@@ -377,11 +377,11 @@ $notificationCount = count($notificationList);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
     
     .modal-title {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-primary);
     }
@@ -400,23 +400,23 @@ $notificationCount = count($notificationList);
     }
     
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
     
     .form-label {
         display: block;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
         color: var(--text-primary);
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     
     .form-input, .form-select {
         width: 100%;
-        padding: 12px 16px;
+        padding: 10px 14px;
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius-lg);
-        font-size: 14px;
+        font-size: 13px;
         background: var(--bg-primary);
         color: var(--text-primary);
         transition: all var(--transition-fast);
@@ -429,7 +429,7 @@ $notificationCount = count($notificationList);
     }
     
     .form-input::file-selector-button {
-        padding: 8px 16px;
+        padding: 8px 14px;
         border-radius: var(--border-radius-lg);
         border: none;
         background: var(--primary-color);
@@ -438,6 +438,7 @@ $notificationCount = count($notificationList);
         margin-right: 12px;
         transition: background var(--transition-fast);
         font-weight: 500;
+        font-size: 12px;
     }
     
     .form-input::file-selector-button:hover {
@@ -449,7 +450,7 @@ $notificationCount = count($notificationList);
         position: relative;
         border: 2px dashed var(--border-color);
         border-radius: var(--border-radius-lg);
-        padding: 24px;
+        padding: 16px;
         text-align: center;
         transition: all var(--transition-fast);
         background: var(--bg-primary);
@@ -466,35 +467,35 @@ $notificationCount = count($notificationList);
     }
     
     .file-upload-icon {
-        font-size: 48px;
-        margin-bottom: 12px;
+        font-size: 36px;
+        margin-bottom: 8px;
         color: var(--text-secondary);
     }
     
     .file-upload-text {
-        font-size: 14px;
+        font-size: 12px;
         color: var(--text-secondary);
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     
     .file-upload-hint {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-muted);
     }
     
     .file-name-display {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--primary-color);
         font-weight: 500;
-        margin-top: 8px;
+        margin-top: 6px;
         word-break: break-all;
     }
     
     .upload-status {
-        padding: 12px 16px;
+        padding: 10px 14px;
         border-radius: var(--border-radius-lg);
-        margin-top: 16px;
-        font-size: 14px;
+        margin-top: 14px;
+        font-size: 13px;
         display: none;
     }
     
@@ -514,10 +515,10 @@ $notificationCount = count($notificationList);
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 20px;
+        padding: 10px 18px;
         border: none;
         border-radius: var(--border-radius-lg);
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         cursor: pointer;
         transition: all var(--transition-fast);
@@ -548,15 +549,15 @@ $notificationCount = count($notificationList);
     
     .form-actions {
         display: flex;
-        gap: 12px;
+        gap: 10px;
         justify-content: flex-end;
-        margin-top: 24px;
+        margin-top: 20px;
     }
     
     .help-text {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-secondary);
-        margin-top: 6px;
+        margin-top: 4px;
     }
     </style>
 </head>
@@ -593,8 +594,13 @@ $notificationCount = count($notificationList);
                             <?php foreach ($gostStandards as $gost): ?>
                             <?php 
                                 // Генерируем ссылку на ГОСТ (локальный файл)
-                                $gostNumberFull = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gost['gost_number']);
-                                $gostFileName = 'gost_' . str_replace('.', '-', $gostNumberFull) . '.pdf';
+                                // Приоритет: если есть file_name в JSON, используем его, иначе генерируем из номера
+                                if (isset($gost['file_name']) && !empty($gost['file_name'])) {
+                                    $gostFileName = $gost['file_name'];
+                                } else {
+                                    $gostNumberFull = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gost['gost_number']);
+                                    $gostFileName = 'gost_' . str_replace('.', '-', $gostNumberFull) . '.pdf';
+                                }
                                 $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
@@ -604,7 +610,7 @@ $notificationCount = count($notificationList);
                                      data-category="<?= e(mb_strtolower($gost['category'], 'UTF-8')) ?>">
                                     <div class="standard-header">
                                         <span class="standard-number"><?= e($gost['gost_number']) ?></span>
-                                        <span class="standard-status status-active\"><?= e($gost['status']) ?></span>
+                                        <span class="standard-status status-active"><?= e($gost['status']) ?></span>
                                     </div>
                                     <div class="standard-title"><?= e($gost['title']) ?></div>
                                     <div class="standard-category">📁 <?= e($gost['category']) ?></div>
@@ -708,25 +714,24 @@ $notificationCount = count($notificationList);
     <div class="modal-overlay" id="uploadModal">
         <div class="modal-window">
             <div class="modal-header">
-                <h3 class="modal-title">📤 Загрузка нового ГОСТа</h3>
+                <h3 class="modal-title">📤 Загрузка ГОСТа</h3>
                 <button class="modal-close" onclick="closeUploadModal()">&times;</button>
             </div>
             
             <form id="uploadForm" onsubmit="submitGostUpload(event)" enctype="multipart/form-data">
                 <div class="form-group">
                     <label class="form-label" for="gost_number">Номер ГОСТ *</label>
-                    <input type="text" class="form-input" id="gost_number" name="gost_number" placeholder="Например: ГОСТ 7798-70" required>
-                    <div class="help-text">Укажите полный номер стандарта</div>
+                    <input type="text" class="form-input" id="gost_number" name="gost_number" placeholder="ГОСТ 7798-70" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="title">Название стандарта *</label>
-                    <input type="text" class="form-input" id="title" name="title" placeholder="Например: Болты с шестигранной головкой" required>
+                    <label class="form-label" for="title">Название *</label>
+                    <input type="text" class="form-input" id="title" name="title" placeholder="Болты с шестигранной головкой" required>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="category">Категория *</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
                         <select class="form-select" id="category" name="category" required style="flex: 1;">
                             <option value="">Выберите категорию</option>
                             <option value="Крепёжные изделия">Крепёжные изделия</option>
@@ -744,11 +749,10 @@ $notificationCount = count($notificationList);
                             <option value="Инструмент">Инструмент</option>
                             <option value="Другое">Другое</option>
                         </select>
-                        <button type="button" class="btn btn-secondary" onclick="addNewCategory()" style="padding: 12px 16px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
+                        <button type="button" class="btn btn-secondary" onclick="addNewCategory()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
                             ➕
                         </button>
                     </div>
-                    <div class="help-text">Выберите категорию из списка или добавьте новую</div>
                 </div>
                 
                 <div class="form-group">
@@ -764,8 +768,8 @@ $notificationCount = count($notificationList);
                     <label class="form-label" for="gost_file">Файл PDF *</label>
                     <div class="file-upload-wrapper" id="fileUploadWrapper" onclick="document.getElementById('gost_file').click()">
                         <div class="file-upload-icon">📄</div>
-                        <div class="file-upload-text">Перетащите файл сюда или кликните для выбора</div>
-                        <div class="file-upload-hint">Максимальный размер файла: 50 MB</div>
+                        <div class="file-upload-text">Перетащите файл или кликните</div>
+                        <div class="file-upload-hint">PDF, макс. 50 MB</div>
                         <div class="file-name-display" id="fileNameDisplay"></div>
                         <input type="file" id="gost_file" name="gost_file" accept=".pdf,application/pdf" required style="display: none;">
                     </div>
