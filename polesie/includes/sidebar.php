@@ -24,10 +24,16 @@
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Основное</div>
             <?php
-            $currentPage = basename($_SERVER['PHP_SELF']);
+            // Получаем полный путь относительно корня приложения
             $currentPath = $_SERVER['PHP_SELF'];
+            // Извлекаем относительный путь после /polesie/ (регистронезависимо)
+            if (preg_match('#/polesie/(.*)$#i', $currentPath, $matches)) {
+                $relativePath = $matches[1];
+            } else {
+                $relativePath = ltrim($currentPath, '/');
+            }
             ?>
-            <a href="<?= pageUrl('index.php') ?>" class="sidebar-nav-item <?= $currentPage == 'index.php' ? 'active' : '' ?>">
+            <a href="<?= pageUrl('index.php') ?>" class="sidebar-nav-item <?= $relativePath === 'index.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📊</span>
                 <span>Панель управления</span>
             </a>
@@ -43,15 +49,15 @@
         <!-- Заказы -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Заказы</div>
-            <a href="<?= pageUrl('modules/orders/list.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'orders/list.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/orders/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/orders/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📦</span>
                 <span>Все заказы</span>
             </a>
-            <a href="<?= pageUrl('modules/orders/create.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'orders/create.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/orders/create.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/orders/create.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">➕</span>
                 <span>Новый заказ</span>
             </a>
-            <a href="<?= pageUrl('modules/contractors/list.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'contractors/list.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/contractors/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/contractors/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🏢</span>
                 <span>Контрагенты</span>
             </a>
@@ -60,15 +66,15 @@
         <!-- Производство -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Производство</div>
-            <a href="<?= pageUrl('modules/production/list.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'production/list.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/production/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/production/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">⚙️</span>
                 <span>Производственные задания</span>
             </a>
-            <a href="<?= pageUrl('modules/production/stages.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'production/stages.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/production/stages.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/production/stages.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📋</span>
                 <span>Этапы производства</span>
             </a>
-            <a href="<?= pageUrl('modules/products/list.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'products/list.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/products/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/products/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🔧</span>
                 <span>Продукция</span>
             </a>
@@ -77,11 +83,11 @@
         <!-- Контроль качества -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Контроль качества</div>
-            <a href="<?= pageUrl('modules/quality/checks.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'quality/checks.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/quality/checks.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/quality/checks.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">✅</span>
                 <span>Проверки</span>
             </a>
-            <a href="<?= pageUrl('modules/quality/reports.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'quality/reports.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/quality/reports.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/quality/reports.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📈</span>
                 <span>Отчеты по качеству</span>
             </a>
@@ -90,19 +96,19 @@
         <!-- Склад -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Склад</div>
-            <a href="<?= pageUrl('modules/warehouse/materials.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'materials.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/warehouse/materials.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/warehouse/materials.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📦</span>
                 <span>Материалы</span>
             </a>
-            <a href="<?= pageUrl('modules/warehouse/list.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'list.php') !== false && strpos($currentPath, 'materials.php') === false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/warehouse/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/warehouse/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🏭</span>
                 <span>Остатки на складе</span>
             </a>
-            <a href="<?= pageUrl('modules/warehouse/docs.php') ?>" class="sidebar-nav-item <?= strpos($currentPath, 'docs.php') !== false ? 'active' : '' ?>">
+            <a href="<?= pageUrl('modules/warehouse/docs.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/warehouse/docs.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📚</span>
                 <span>Документы и справочники</span>
             </a>
-            <a href="<?= pageUrl('modules/warehouse/transactions.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/warehouse/transactions.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/warehouse/transactions.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📝</span>
                 <span>Движение</span>
             </a>
@@ -111,11 +117,11 @@
         <!-- Сотрудники -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Сотрудники</div>
-            <a href="<?= pageUrl('modules/employees/list.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/employees/list.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/employees/list.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">👥</span>
                 <span>Все сотрудники</span>
             </a>
-            <a href="<?= pageUrl('modules/employees/departments.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/employees/departments.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/employees/departments.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">🏛️</span>
                 <span>Структура</span>
             </a>
@@ -124,15 +130,15 @@
         <!-- Отчеты -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Отчеты</div>
-            <a href="<?= pageUrl('modules/reports/production.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/reports/index.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/reports/index.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📊</span>
                 <span>Производство</span>
             </a>
-            <a href="<?= pageUrl('modules/reports/sales.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/reports/sales.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/reports/sales.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">💰</span>
                 <span>Продажи</span>
             </a>
-            <a href="<?= pageUrl('modules/reports/analytics.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/reports/analytics.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/reports/analytics.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📈</span>
                 <span>Аналитика</span>
             </a>
@@ -142,15 +148,15 @@
         <?php if ($user['role_code'] === 'admin'): ?>
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Администрирование</div>
-            <a href="<?= pageUrl('modules/settings/users.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/settings/users.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/settings/users.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">👤</span>
                 <span>Пользователи</span>
             </a>
-            <a href="<?= pageUrl('modules/settings/system.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/settings/system.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/settings/system.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">⚙️</span>
                 <span>Настройки системы</span>
             </a>
-            <a href="<?= pageUrl('modules/settings/logs.php') ?>" class="sidebar-nav-item">
+            <a href="<?= pageUrl('modules/settings/logs.php') ?>" class="sidebar-nav-item <?= $relativePath === 'modules/settings/logs.php' ? 'active' : '' ?>">
                 <span class="sidebar-nav-icon">📜</span>
                 <span>Журнал событий</span>
             </a>
