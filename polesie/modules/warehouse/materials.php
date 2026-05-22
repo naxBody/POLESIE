@@ -276,6 +276,9 @@ $notificationCount = count($notificationList);
 
 // Подготовка данных о комбинациях свойств для JS
 $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_UNICODE);
+
+// Для динамического поиска на клиенте передаем ВСЕ материалы в data-атрибут
+$allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -1037,7 +1040,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     <!-- Статистика и управление видом -->
     <div class="stats-bar">
         <div class="stats-count" id="materialsCount">
-            Найдено материалов: <strong><?= count($filteredMaterials) ?></strong> из <strong><?= count($allMaterials) ?></strong>
+            Найдено материалов: <strong><?= count($allMaterials) ?></strong> из <strong><?= count($allMaterials) ?></strong>
         </div>
         <div class="view-controls">
             <button class="view-btn active" onclick="setView('grid')" title="Карточки">▦</button>
@@ -1046,16 +1049,9 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     </div>
     
     <!-- Список материалов -->
-    <?php if (empty($filteredMaterials)): ?>
-        <div class="empty-state">
-            <div class="empty-state-icon">📋</div>
-            <h3>Материалы не найдены</h3>
-            <p>Попробуйте изменить параметры фильтров</p>
-        </div>
-    <?php else: ?>
-        <!-- Вид: Карточки -->
-        <div class="materials-grid" id="materialsGrid">
-            <?php foreach ($filteredMaterials as $material): ?>
+    <!-- Вид: Карточки - показываем ВСЕ материалы для динамического поиска как в ГОСТах -->
+    <div class="materials-grid" id="materialsGrid">
+        <?php foreach ($allMaterials as $material): ?>
                 <?php 
                 $specs = $material['specifications'] ?? [];
                 $gostStandard = $specs['standard_doc'] ?? '';
@@ -1199,7 +1195,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($filteredMaterials as $material): ?>
+                <?php foreach ($allMaterials as $material): ?>
                     <?php 
                     // Определение стиля отображения количества для таблицы
                     $qtyClass = 'quantity-badge-none';
@@ -1305,11 +1301,7 @@ function updatePropertyFiltersWithoutSubmit() {
         filter.style.display = 'none';
     });
     
-    // При изменении категории также сбрасываем поиск и показываем все карточки
-    const searchInput = document.getElementById('dynamicSearch');
-    if (searchInput) {
-        searchInput.value = '';
-    }
+    // НЕ сбрасываем поиск - фильтрация происходит мгновенно на клиенте
     
     // Фильтруем карточки по выбранной категории на клиенте
     const cards = document.querySelectorAll('#materialsGrid .material-card');
