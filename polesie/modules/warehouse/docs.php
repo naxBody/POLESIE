@@ -638,18 +638,18 @@ $notificationCount = count($notificationList);
                                         </div>
                                         <div class="standard-title"><?= e($gost['title']) ?></div>
                                         <div class="standard-category">📁 <?= e($gost['category']) ?></div>
+                                        <div class="standard-card-footer">
+                                            <button class="btn-icon edit-gost-btn" 
+                                                    onclick="event.stopPropagation(); openEditModal(<?= $index ?>);" 
+                                                    title="Редактировать"
+                                                    style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                                    onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
+                                                    onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
+                                                ✏️
+                                            </button>
+                                        </div>
                                     </div>
                                 </a>
-                                <div class="standard-card-footer" style="padding: 0 20px 12px;">
-                                    <button class="btn-icon edit-gost-btn" 
-                                            onclick="openEditModal(<?= $index ?>);" 
-                                            title="Редактировать"
-                                            style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
-                                            onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
-                                            onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
-                                        ✏️
-                                    </button>
-                                </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
