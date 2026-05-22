@@ -726,17 +726,29 @@ $notificationCount = count($notificationList);
                 
                 <div class="form-group">
                     <label class="form-label" for="category">Категория *</label>
-                    <select class="form-select" id="category" name="category" required>
-                        <option value="">Выберите категорию</option>
-                        <option value="Крепёжные изделия">Крепёжные изделия</option>
-                        <option value="Прокат">Прокат</option>
-                        <option value="Трубы">Трубы</option>
-                        <option value="Листовой металл">Листовой металл</option>
-                        <option value="Электротехнические материалы">Электротехнические материалы</option>
-                        <option value="Изоляционные материалы">Изоляционные материалы</option>
-                        <option value="Лакокрасочные материалы">Лакокрасочные материалы</option>
-                        <option value="Другое">Другое</option>
-                    </select>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select class="form-select" id="category" name="category" required style="flex: 1;">
+                            <option value="">Выберите категорию</option>
+                            <option value="Крепёжные изделия">Крепёжные изделия</option>
+                            <option value="Прокат">Прокат</option>
+                            <option value="Трубы">Трубы</option>
+                            <option value="Листовой металл">Листовой металл</option>
+                            <option value="Электротехнические материалы">Электротехнические материалы</option>
+                            <option value="Изоляционные материалы">Изоляционные материалы</option>
+                            <option value="Лакокрасочные материалы">Лакокрасочные материалы</option>
+                            <option value="Металлопрокат">Металлопрокат</option>
+                            <option value="Металлы">Металлы</option>
+                            <option value="Подшипники">Подшипники</option>
+                            <option value="Сварочные материалы">Сварочные материалы</option>
+                            <option value="Масла и смазки">Масла и смазки</option>
+                            <option value="Инструмент">Инструмент</option>
+                            <option value="Другое">Другое</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" onclick="addNewCategory()" style="padding: 12px 16px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
+                            ➕
+                        </button>
+                    </div>
+                    <div class="help-text">Выберите категорию из списка или добавьте новую</div>
                 </div>
                 
                 <div class="form-group">
@@ -846,6 +858,35 @@ $notificationCount = count($notificationList);
             clearUploadStatus();
             clearFileDisplay();
         }, 300); // Ждем завершения анимации
+    }
+    
+    function addNewCategory() {
+        const categoryName = prompt('Введите название новой категории:');
+        if (categoryName && categoryName.trim()) {
+            const trimmedName = categoryName.trim();
+            const select = document.getElementById('category');
+            
+            // Проверяем, существует ли уже такая категория
+            let exists = false;
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value.toLowerCase() === trimmedName.toLowerCase()) {
+                    exists = true;
+                    break;
+                }
+            }
+            
+            if (!exists) {
+                const newOption = document.createElement('option');
+                newOption.value = trimmedName;
+                newOption.textContent = trimmedName;
+                select.appendChild(newOption);
+                select.value = trimmedName;
+                alert('✅ Категория "' + trimmedName + '" добавлена');
+            } else {
+                alert('⚠️ Такая категория уже существует');
+                select.value = trimmedName;
+            }
+        }
     }
     
     function clearUploadStatus() {
