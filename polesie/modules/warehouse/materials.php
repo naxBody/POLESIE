@@ -17,7 +17,10 @@ $pdo = getDbConnection();
 $pageTitle = 'Материалы';
 
 // Загрузка данных из JSON
-$jsonPath = dirname(BASE_PATH) . '/list_materials.json';
+$jsonPath = BASE_PATH . '/list_materials.json';
+if (!file_exists($jsonPath)) {
+    $jsonPath = dirname(BASE_PATH) . '/list_materials.json';
+}
 $materialsData = [];
 $categories = [];
 $allMaterials = [];
