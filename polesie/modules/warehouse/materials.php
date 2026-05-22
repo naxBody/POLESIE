@@ -870,35 +870,35 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 <!-- Динамические фильтры свойств -->
                 <div class="filter-group dynamic-filter" id="diameterFilter" style="display: none;">
                     <label class="filter-label">Диаметр (мм)</label>
-                    <select name="diameter" class="filter-select" id="diameterSelect" onchange="this.form.submit()">
+                    <select name="diameter" class="filter-select" id="diameterSelect" onchange="filterByProperty('diameter', this.value)">
                         <option value="">Все</option>
                     </select>
                 </div>
                 
                 <div class="filter-group dynamic-filter" id="lengthFilter" style="display: none;">
                     <label class="filter-label">Длина (мм)</label>
-                    <select name="length" class="filter-select" id="lengthSelect" onchange="this.form.submit()">
+                    <select name="length" class="filter-select" id="lengthSelect" onchange="filterByProperty('length', this.value)">
                         <option value="">Все</option>
                     </select>
                 </div>
                 
                 <div class="filter-group dynamic-filter" id="strengthClassFilter" style="display: none;">
                     <label class="filter-label">Класс прочности</label>
-                    <select name="strength_class" class="filter-select" id="strengthClassSelect" onchange="this.form.submit()">
+                    <select name="strength_class" class="filter-select" id="strengthClassSelect" onchange="filterByProperty('strength_class', this.value)">
                         <option value="">Все</option>
                     </select>
                 </div>
                 
                 <div class="filter-group dynamic-filter" id="coatingFilter" style="display: none;">
                     <label class="filter-label">Покрытие</label>
-                    <select name="coating" class="filter-select" id="coatingSelect" onchange="this.form.submit()">
+                    <select name="coating" class="filter-select" id="coatingSelect" onchange="filterByProperty('coating', this.value)">
                         <option value="">Все</option>
                     </select>
                 </div>
                 
                 <div class="filter-group">
                     <label class="filter-label">Марка материала</label>
-                    <select name="grade" class="filter-select">
+                    <select name="grade" class="filter-select" onchange="filterByProperty('grade', this.value)">
                         <option value="">Все марки</option>
                         <?php foreach ($materialGrades as $grade): ?>
                             <option value="<?= e($grade) ?>" <?= $filterGrade === $grade ? 'selected' : '' ?>>
@@ -910,7 +910,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Стандарт</label>
-                    <select name="standard" class="filter-select">
+                    <select name="standard" class="filter-select" onchange="filterByProperty('standard', this.value)">
                         <option value="">Все стандарты</option>
                         <?php foreach ($standards as $std): ?>
                             <option value="<?= e($std) ?>" <?= $filterStandard === $std ? 'selected' : '' ?>>
@@ -922,7 +922,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Форма изделия</label>
-                    <select name="form" class="filter-select">
+                    <select name="form" class="filter-select" onchange="filterByProperty('form', this.value)">
                         <option value="">Все формы</option>
                         <?php foreach ($productForms as $form): ?>
                             <option value="<?= e($form) ?>" <?= $filterForm === $form ? 'selected' : '' ?>>
@@ -934,7 +934,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Ответственность</label>
-                    <select name="critical" class="filter-select">
+                    <select name="critical" class="filter-select" onchange="filterByProperty('critical', this.value)">
                         <option value="">Все</option>
                         <option value="critical" <?= $filterCritical === 'critical' ? 'selected' : '' ?>>Ответственные</option>
                         <option value="non_critical" <?= $filterCritical === 'non_critical' ? 'selected' : '' ?>>Обычные</option>
@@ -943,7 +943,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Сертификат</label>
-                    <select name="cert" class="filter-select">
+                    <select name="cert" class="filter-select" onchange="filterByProperty('cert', this.value)">
                         <option value="">Все</option>
                         <option value="required" <?= $filterCert === 'required' ? 'selected' : '' ?>>Требуется</option>
                         <option value="not_required" <?= $filterCert === 'not_required' ? 'selected' : '' ?>>Не требуется</option>
@@ -952,7 +952,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Сортировка</label>
-                    <select name="sort" class="filter-select" onchange="this.form.submit()">
+                    <select name="sort" class="filter-select" onchange="changeSort(this.value)">
                         <option value="name" <?= $sortBy === 'name' ? 'selected' : '' ?>>По названию</option>
                         <option value="code" <?= $sortBy === 'code' ? 'selected' : '' ?>>По коду</option>
                         <option value="category" <?= $sortBy === 'category' ? 'selected' : '' ?>>По категории</option>
@@ -1068,6 +1068,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                      data-category="<?= e(strtolower($categoryName)) ?>"
                      data-subcategory="<?= e(strtolower($subcategoryName)) ?>"
                      data-gost="<?= e(strtolower($gostStandard)) ?>"
+                     data-specs='<?= htmlspecialchars(json_encode($specs, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'
                      onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)">
                     <div class="material-card-header">
                         <div>
@@ -1641,6 +1642,155 @@ function clearSearchFilter() {
         searchInput.value = '';
     }
     debouncedSearch();
+}
+
+// Фильтрация по свойствам (диаметр, длина, класс прочности, покрытие) - мгновенно на клиенте
+function filterByProperty(property, value) {
+    const cards = document.querySelectorAll('#materialsGrid .material-card');
+    let visibleCount = 0;
+    
+    // Получаем текущее значение поиска
+    const searchQuery = (document.getElementById('dynamicSearch')?.value || '').toLowerCase();
+    
+    cards.forEach(card => {
+        const cardCategory = card.dataset.category || '';
+        const selectedCategory = document.getElementById('categorySelect')?.value || '';
+        
+        // Проверяем соответствие категории
+        const categoryMatch = selectedCategory === '' || cardCategory == selectedCategory;
+        
+        // Проверяем соответствие поиску
+        const name = card.dataset.name || '';
+        const code = card.dataset.code || '';
+        const subcategory = card.dataset.subcategory || '';
+        const gost = card.dataset.gost || '';
+        const searchMatch = searchQuery === '' || 
+                           name.includes(searchQuery) || 
+                           code.includes(searchQuery) || 
+                           subcategory.includes(searchQuery) || 
+                           gost.includes(searchQuery);
+        
+        // Проверяем соответствие свойству
+        let propertyMatch = true;
+        if (value !== '') {
+            // Получаем данные о свойствах из карточки (из spec-data атрибута)
+            const specData = JSON.parse(card.dataset.specs || '{}');
+            
+            switch(property) {
+                case 'diameter':
+                    const diameter = specData['thread_diameter_mm'] || specData['diameter_mm'] || 
+                                    specData['conductor_diameter_mm'] || specData['nominal_diameter_mm'];
+                    propertyMatch = diameter && (String(diameter) === String(value));
+                    break;
+                case 'length':
+                    const length = specData['length_mm'] || specData['length_m'];
+                    if (Array.isArray(length)) {
+                        propertyMatch = length.includes(String(value));
+                    } else {
+                        propertyMatch = length && (String(length) === String(value));
+                    }
+                    break;
+                case 'strength_class':
+                    const strengthClass = specData['strength_class'];
+                    propertyMatch = strengthClass && (String(strengthClass) === String(value));
+                    break;
+                case 'coating':
+                    const coating = specData['coating'];
+                    propertyMatch = coating && (String(coating) === String(value));
+                    break;
+                case 'grade':
+                    const grade = specData['material_grade'];
+                    propertyMatch = grade && (String(grade) === String(value));
+                    break;
+                case 'standard':
+                    const standard = specData['standard_doc'];
+                    propertyMatch = standard && (String(standard) === String(value));
+                    break;
+                case 'form':
+                    const form = specData['product_form'];
+                    propertyMatch = form && (String(form) === String(value));
+                    break;
+                case 'critical':
+                    const isCritical = !!specData['is_critical'];
+                    if (value === 'critical') {
+                        propertyMatch = isCritical;
+                    } else if (value === 'non_critical') {
+                        propertyMatch = !isCritical;
+                    }
+                    break;
+                case 'cert':
+                    const requiresCert = !!specData['requires_cert'];
+                    if (value === 'required') {
+                        propertyMatch = requiresCert;
+                    } else if (value === 'not_required') {
+                        propertyMatch = !requiresCert;
+                    }
+                    break;
+            }
+        }
+        
+        // Показываем карточку только если все условия выполнены
+        if (categoryMatch && searchMatch && propertyMatch) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Обновляем счетчик
+    const countEl = document.querySelector('.stats-count strong');
+    if (countEl) {
+        countEl.textContent = visibleCount;
+    }
+    
+    // Показываем сообщение если ничего не найдено
+    const emptyState = document.querySelector('.empty-state');
+    if (visibleCount === 0 && cards.length > 0) {
+        if (!emptyState) {
+            const grid = document.getElementById('materialsGrid');
+            const emptyHtml = `
+                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Ничего не найдено</h3>
+                    <p>Попробуйте изменить параметры фильтрации</p>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', emptyHtml);
+        }
+    } else if (emptyState && visibleCount > 0) {
+        emptyState.remove();
+    }
+}
+
+// Изменение сортировки - мгновенно на клиенте
+function changeSort(sortBy) {
+    const grid = document.getElementById('materialsGrid');
+    const cards = Array.from(grid.querySelectorAll('.material-card'));
+    
+    cards.sort((a, b) => {
+        let result = 0;
+        switch(sortBy) {
+            case 'name':
+                result = (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                break;
+            case 'code':
+                result = (a.dataset.code || '').localeCompare(b.dataset.code || '');
+                break;
+            case 'category':
+                result = (a.dataset.category || '').localeCompare(b.dataset.category || '');
+                break;
+            case 'grade':
+                const specA = JSON.parse(a.dataset.specs || '{}');
+                const specB = JSON.parse(b.dataset.specs || '{}');
+                result = (specA['material_grade'] || '').localeCompare(specB['material_grade'] || '');
+                break;
+        }
+        return result;
+    });
+    
+    // Переставляем карточки в DOM
+    cards.forEach(card => grid.appendChild(card));
 }
 
 function setView(view) {
