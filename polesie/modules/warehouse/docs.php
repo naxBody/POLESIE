@@ -20,7 +20,7 @@ $pdo = getDbConnection();
 $pageTitle = 'Документы и справочники';
 
 // Загрузка данных из JSON
-$docsPath = BASE_PATH . '/../list_materials_docs.json';
+$docsPath = BASE_PATH . '/list_materials_docs.json';
 $docsData = [];
 
 if (file_exists($docsPath)) {
@@ -33,7 +33,7 @@ $gostStandards = $docsData['gost_standards'] ?? [];
 $allAbbreviations = $materialsData['all_abbreviations'] ?? [];
 
 // Загружаем полную структуру кодов из list_materials.json
-$materialsPath = BASE_PATH . '/../list_materials.json';
+$materialsPath = BASE_PATH . '/list_materials.json';
 $codeStructures = [];
 if (file_exists($materialsPath)) {
     $materialsData = json_decode(file_get_contents($materialsPath), true);
@@ -595,7 +595,7 @@ $notificationCount = count($notificationList);
                                 // Генерируем ссылку на ГОСТ (локальный файл)
                                 $gostNumberFull = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gost['gost_number']);
                                 $gostFileName = 'gost_' . str_replace('.', '-', $gostNumberFull) . '.pdf';
-                                $gostLink = APP_URL . '/assets/gosts/' . $gostFileName;
+                                $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
                                 <div class="standard-card" 
@@ -1011,7 +1011,7 @@ $notificationCount = count($notificationList);
         submitBtn.innerHTML = '⏳ Загрузка...';
         
         try {
-            const response = await fetch('modules/warehouse/upload_gost.php', {
+            const response = await fetch('upload_gost.php', {
                 method: 'POST',
                 body: formData
             });
