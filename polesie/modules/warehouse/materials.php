@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('/polesie/login.php');
+    redirect('../../login.php');
 }
 
 $user = getCurrentUser();
@@ -266,12 +266,12 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
 <body>
     <div class="app-container">
         <!-- Боковая панель -->
-        <?php include '/workspace/polesie/includes/sidebar.php'; ?>
+        <?php include __DIR__ . '/../../../includes/sidebar.php'; ?>
         
         <!-- Основной контент -->
         <div class="main-content">
             <!-- Верхняя панель -->
-            <?php include '/workspace/polesie/includes/topbar.php'; ?>
+            <?php include __DIR__ . '/../../../includes/topbar.php'; ?>
             
             <!-- Контентная область -->
             <div class="content-area">
