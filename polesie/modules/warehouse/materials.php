@@ -1198,6 +1198,49 @@ function updatePropertyFilters() {
         }
         coatingFilter.style.display = 'flex';
     }
+
+    // Показываем расшифровку формата кода для выбранной категории
+    showCodeFormatInfo(combinations);
+}
+
+// Функция отображения информации о формате кода
+function showCodeFormatInfo(combinations) {
+    // Удаляем существующую информацию если есть
+    const existingInfo = document.getElementById('codeFormatInfo');
+    if (existingInfo) {
+        existingInfo.remove();
+    }
+
+    if (!combinations._code_format_ru) {
+        return;
+    }
+
+    // Создаём блок с расшифровкой формата кода
+    const filtersPanel = document.querySelector('.filters-panel');
+    const infoDiv = document.createElement('div');
+    infoDiv.id = 'codeFormatInfo';
+    infoDiv.style.cssText = `
+        margin-top: 16px;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: var(--border-radius);
+        font-size: 13px;
+        color: var(--text-primary);
+    `;
+    infoDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 16px;">📐</span>
+            <strong>Формат кода материала:</strong>
+        </div>
+        <div style="font-family: 'Courier New', monospace; background: var(--gray-100); padding: 8px 12px; border-radius: 4px; margin-bottom: 8px;">
+            ${escapeHtml(combinations._code_format || '')}
+        </div>
+        <div style="color: var(--text-secondary);">
+            ${escapeHtml(combinations._code_format_ru || '')}
+        </div>
+    `;
+    filtersPanel.appendChild(infoDiv);
 }
 
 // Вызываем при загрузке страницы, если категория уже выбрана
