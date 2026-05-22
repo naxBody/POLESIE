@@ -909,16 +909,20 @@ $notificationCount = count($notificationList);
     }
     
     function filterStandards(query) {
-        const cards = document.querySelectorAll('#standardsGrid .standard-card');
+        const wrappers = document.querySelectorAll('#standardsGrid .standard-card-wrapper');
         query = query.toLowerCase();
-        cards.forEach(card => {
+        wrappers.forEach(wrapper => {
+            const card = wrapper.querySelector('.standard-card');
+            if (!card) return;
+            
             const gost = card.dataset.gost || '';
             const title = card.dataset.title || '';
             const category = card.dataset.category || '';
+            
             if (gost.includes(query) || title.includes(query) || category.includes(query)) {
-                card.style.display = 'block';
+                wrapper.style.display = 'flex';
             } else {
-                card.style.display = 'none';
+                wrapper.style.display = 'none';
             }
         });
     }
