@@ -527,32 +527,142 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     color: var(--text-primary);
 }
 
-.quantity-badge {
-    display: inline;
+/* Стильное отображение количества на складе */
+.quantity-wrapper {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.quantity-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: flex;
     align-items: center;
-    gap: 0;
-    padding: 0;
-    border-radius: 0;
+    gap: 4px;
+}
+
+.quantity-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-value {
+    font-size: 18px;
+    font-weight: 700;
+    min-width: 80px;
+}
+
+.quantity-value-high {
+    color: #10b981;
+}
+
+.quantity-value-medium {
+    color: #f59e0b;
+}
+
+.quantity-value-low {
+    color: #ef4444;
+}
+
+.quantity-value-none {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.quantity-bar-container {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-100);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.quantity-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.quantity-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.2) 0%,
+        rgba(255,255,255,0) 50%,
+        rgba(255,255,255,0.2) 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.quantity-bar-high {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.quantity-bar-medium {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.quantity-bar-low {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.quantity-icon {
+    font-size: 16px;
+}
+
+.quantity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 13px;
-    font-weight: 500;
-    margin-top: 0;
-    background: transparent;
-    color: var(--text-primary);
+    font-weight: 600;
+    transition: all var(--transition-fast);
 }
 
 .quantity-badge-high {
-    background: transparent;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .quantity-badge-medium {
-    background: transparent;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.1));
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .quantity-badge-low {
-    background: transparent;
-    color: var(--danger-color);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1));
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.quantity-badge-none {
+    background: var(--gray-100);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
 }
 
 .material-badges {
@@ -726,13 +836,18 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
         
         <form method="GET" id="filtersForm">
             <div class="filters-grid">
-                <div class="filter-group">
-                    <label class="filter-label">Поиск</label>
+                <div class="filter-group" style="grid-column: 1 / -1;">
+                    <label class="filter-label">🔍 Динамический поиск</label>
                     <input type="text" 
                            name="search" 
                            class="filter-input" 
-                           placeholder="Название, код..."
-                           value="<?= e($filterSearch) ?>">
+                           id="dynamicSearch"
+                           placeholder="Введите название категории или код материала..."
+                           value="<?= e($filterSearch) ?>"
+                           oninput="debouncedSearch()">
+                    <small style="color: var(--text-muted); margin-top: 4px; font-size: 11px;">
+                        Поиск по названию категории, подкатегории, коду материала или ГОСТ
+                    </small>
                 </div>
                 
                 <div class="filter-group">
@@ -999,21 +1114,50 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                     </div>
                     
                     <?php 
-                    // Определение цвета бейджа количества
-                    $qtyClass = 'quantity-badge-medium';
+                    // Определение стиля отображения количества
+                    $qtyClass = 'quantity-badge-none';
+                    $qtyValueClass = 'quantity-value-none';
+                    $qtyBarClass = '';
                     $qtyText = 'Нет данных';
+                    $qtyPercent = 0;
+                    $maxQty = 100; // Максимальное количество для шкалы
+                    
                     if ($material['warehouse_quantity'] !== null) {
                         $qty = floatval($material['warehouse_quantity']);
                         $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
+                        $qtyPercent = min(100, ($qty / $maxQty) * 100);
+                        
                         if ($qty <= 10) {
                             $qtyClass = 'quantity-badge-low';
+                            $qtyValueClass = 'quantity-value-low';
+                            $qtyBarClass = 'quantity-bar-low';
                         } elseif ($qty <= 50) {
                             $qtyClass = 'quantity-badge-medium';
+                            $qtyValueClass = 'quantity-value-medium';
+                            $qtyBarClass = 'quantity-bar-medium';
                         } else {
                             $qtyClass = 'quantity-badge-high';
+                            $qtyValueClass = 'quantity-value-high';
+                            $qtyBarClass = 'quantity-bar-high';
                         }
                     }
                     ?>
+                    
+                    <!-- Красивое отображение количества -->
+                    <div class="quantity-wrapper">
+                        <div class="quantity-label">
+                            <span class="quantity-icon">📦</span>
+                            На складе
+                        </div>
+                        <div class="quantity-display">
+                            <span class="quantity-value <?= $qtyValueClass ?>"><?= $qtyText ?></span>
+                            <?php if ($material['warehouse_quantity'] !== null): ?>
+                            <div class="quantity-bar-container" title="<?= number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']) ?>">
+                                <div class="quantity-bar <?= $qtyBarClass ?>" style="width: <?= $qtyPercent ?>%;"></div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                     
                     <div class="material-badges">
                         <?php if (!empty($material['is_critical'])): ?>
@@ -1022,7 +1166,6 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <?php if (!empty($material['requires_cert'])): ?>
                             <span class="badge-cert">📄 Сертификат</span>
                         <?php endif; ?>
-                        <span class="quantity-badge <?= $qtyClass ?>"><?= $qtyText ?></span>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -1045,18 +1188,31 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
             <tbody>
                 <?php foreach ($filteredMaterials as $material): ?>
                     <?php 
-                    // Определение цвета бейджа количества для таблицы
-                    $qtyClass = 'quantity-badge-medium';
+                    // Определение стиля отображения количества для таблицы
+                    $qtyClass = 'quantity-badge-none';
+                    $qtyValueClass = 'quantity-value-none';
+                    $qtyBarClass = '';
                     $qtyText = 'Нет данных';
+                    $qtyPercent = 0;
+                    $maxQty = 100; // Максимальное количество для шкалы
+                    
                     if ($material['warehouse_quantity'] !== null) {
                         $qty = floatval($material['warehouse_quantity']);
                         $qtyText = number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']);
+                        $qtyPercent = min(100, ($qty / $maxQty) * 100);
+                        
                         if ($qty <= 10) {
                             $qtyClass = 'quantity-badge-low';
+                            $qtyValueClass = 'quantity-value-low';
+                            $qtyBarClass = 'quantity-bar-low';
                         } elseif ($qty <= 50) {
                             $qtyClass = 'quantity-badge-medium';
+                            $qtyValueClass = 'quantity-value-medium';
+                            $qtyBarClass = 'quantity-bar-medium';
                         } else {
                             $qtyClass = 'quantity-badge-high';
+                            $qtyValueClass = 'quantity-value-high';
+                            $qtyBarClass = 'quantity-bar-high';
                         }
                     }
                     ?>
@@ -1074,7 +1230,15 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <td><small><?= e($material['specifications']['standard_doc'] ?? '—') ?></small></td>
                         <td><?= e($material['base_unit']) ?></td>
                         <td>
-                            <span class="quantity-badge <?= $qtyClass ?>" style="font-size: 13px;"><?= $qtyText ?></span>
+                            <!-- Красивое отображение количества в таблице -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="quantity-value <?= $qtyValueClass ?>" style="font-size: 14px; min-width: 60px;"><?= $qtyText ?></span>
+                                <?php if ($material['warehouse_quantity'] !== null): ?>
+                                <div class="quantity-bar-container" style="width: 80px;" title="<?= number_format($qty, 2, ',', ' ') . ' ' . e($material['base_unit']) ?>">
+                                    <div class="quantity-bar <?= $qtyBarClass ?>" style="width: <?= $qtyPercent ?>%;"></div>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td>
                             <?php if (!empty($material['is_critical'])): ?>
@@ -1267,6 +1431,15 @@ function showCodeFormatInfo(combinations) {
 document.addEventListener('DOMContentLoaded', function() {
     updatePropertyFilters();
 });
+
+// Функция динамического поиска с задержкой (debounce)
+let searchTimeout;
+function debouncedSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        document.getElementById('filtersForm').submit();
+    }, 500); // Задержка 500мс перед отправкой формы
+}
 
 function setView(view) {
     const grid = document.getElementById('materialsGrid');
