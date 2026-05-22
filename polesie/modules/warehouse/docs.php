@@ -591,7 +591,7 @@ $notificationCount = count($notificationList);
                         </div>
                         
                         <div class="standards-grid" id="standardsGrid">
-                            <?php foreach ($gostStandards as $gost): ?>
+                            <?php foreach ($gostStandards as $index => $gost): ?>
                             <?php 
                                 // Генерируем ссылку на ГОСТ (локальный файл)
                                 // Приоритет: если есть file_name в JSON, используем его, иначе генерируем из номера
@@ -603,19 +603,29 @@ $notificationCount = count($notificationList);
                                 }
                                 $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
-                            <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
-                                <div class="standard-card" 
-                                     data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
-                                     data-title="<?= e(mb_strtolower($gost['title'], 'UTF-8')) ?>"
-                                     data-category="<?= e(mb_strtolower($gost['category'], 'UTF-8')) ?>">
-                                    <div class="standard-header">
-                                        <span class="standard-number"><?= e($gost['gost_number']) ?></span>
-                                        <span class="standard-status status-active"><?= e($gost['status']) ?></span>
+                            <div class="standard-card-wrapper" style="position: relative;">
+                                <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
+                                    <div class="standard-card" 
+                                         data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
+                                         data-title="<?= e(mb_strtolower($gost['title'], 'UTF-8')) ?>"
+                                         data-category="<?= e(mb_strtolower($gost['category'], 'UTF-8')) ?>">
+                                        <div class="standard-header">
+                                            <span class="standard-number"><?= e($gost['gost_number']) ?></span>
+                                            <span class="standard-status status-active"><?= e($gost['status']) ?></span>
+                                        </div>
+                                        <div class="standard-title"><?= e($gost['title']) ?></div>
+                                        <div class="standard-category">📁 <?= e($gost['category']) ?></div>
                                     </div>
-                                    <div class="standard-title"><?= e($gost['title']) ?></div>
-                                    <div class="standard-category">📁 <?= e($gost['category']) ?></div>
-                                </div>
-                            </a>
+                                </a>
+                                <button class="btn-icon edit-gost-btn" 
+                                        onclick="openEditModal(<?= $index ?>)" 
+                                        title="Редактировать"
+                                        style="position: absolute; top: 12px; right: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                        onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
+                                        onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
+                                    ✏️
+                                </button>
+                            </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
@@ -785,6 +795,84 @@ $notificationCount = count($notificationList);
         </div>
     </div>
     
+    <!-- Модальное окно редактирования ГОСТ -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Редактирование ГОСТа</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <form id="editForm" onsubmit="submitGostEdit(event)" enctype="multipart/form-data">
+                <input type="hidden" id="edit_index" name="index">
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit_gost_number">Номер ГОСТ *</label>
+                    <input type="text" class="form-input" id="edit_gost_number" name="gost_number" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit_title">Название *</label>
+                    <input type="text" class="form-input" id="edit_title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit_category">Категория *</label>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <select class="form-select" id="edit_category" name="category" required style="flex: 1;">
+                            <option value="">Выберите категорию</option>
+                            <option value="Крепёжные изделия">Крепёжные изделия</option>
+                            <option value="Прокат">Прокат</option>
+                            <option value="Трубы">Трубы</option>
+                            <option value="Листовой металл">Листовой металл</option>
+                            <option value="Электротехнические материалы">Электротехнические материалы</option>
+                            <option value="Изоляционные материалы">Изоляционные материалы</option>
+                            <option value="Лакокрасочные материалы">Лакокрасочные материалы</option>
+                            <option value="Металлопрокат">Металлопрокат</option>
+                            <option value="Металлы">Металлы</option>
+                            <option value="Подшипники">Подшипники</option>
+                            <option value="Сварочные материалы">Сварочные материалы</option>
+                            <option value="Масла и смазки">Масла и смазки</option>
+                            <option value="Инструмент">Инструмент</option>
+                            <option value="Другое">Другое</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" onclick="addNewCategoryEdit()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
+                            ➕
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit_status">Статус</label>
+                    <select class="form-select" id="edit_status" name="status">
+                        <option value="Действующий">Действующий</option>
+                        <option value="Заменён">Заменён</option>
+                        <option value="Отменён">Отменён</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit_gost_file">Новый файл PDF (необязательно)</label>
+                    <div class="file-upload-wrapper" id="editFileUploadWrapper" onclick="document.getElementById('edit_gost_file').click()">
+                        <div class="file-upload-icon">📄</div>
+                        <div class="file-upload-text">Перетащите файл или кликните</div>
+                        <div class="file-upload-hint">PDF, макс. 50 MB (оставьте пустым, чтобы сохранить текущий файл)</div>
+                        <div class="file-name-display" id="editFileNameDisplay"></div>
+                        <input type="file" id="edit_gost_file" name="gost_file" accept=".pdf,application/pdf" style="display: none;">
+                    </div>
+                    <div class="help-text" id="currentFileDisplay" style="margin-top: 8px; font-size: 11px; color: var(--text-secondary);"></div>
+                </div>
+                
+                <div id="editUploadStatus" class="upload-status"></div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+                    <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
     function switchTab(tabName) {
         // Убираем активный класс со всех вкладок
@@ -911,6 +999,102 @@ $notificationCount = count($notificationList);
         if (fileInput) fileInput.value = '';
     }
     
+    function clearEditFileDisplay() {
+        const wrapper = document.getElementById('editFileUploadWrapper');
+        const fileNameDisplay = document.getElementById('editFileNameDisplay');
+        const fileInput = document.getElementById('edit_gost_file');
+        
+        if (wrapper) wrapper.classList.remove('has-file');
+        if (fileNameDisplay) fileNameDisplay.textContent = '';
+        if (fileInput) fileInput.value = '';
+    }
+    
+    // Массив данных ГОСТ для редактирования
+    let gostStandardsData = <?= json_encode($gostStandards, JSON_UNESCAPED_UNICODE) ?>;
+    
+    // Модальное окно редактирования ГОСТ
+    function openEditModal(index) {
+        const gost = gostStandardsData[index];
+        if (!gost) return;
+        
+        document.getElementById('edit_index').value = index;
+        document.getElementById('edit_gost_number').value = gost.gost_number || '';
+        document.getElementById('edit_title').value = gost.title || '';
+        document.getElementById('edit_category').value = gost.category || '';
+        document.getElementById('edit_status').value = gost.status || 'Действующий';
+        
+        // Показываем текущий файл
+        const currentFileDisplay = document.getElementById('currentFileDisplay');
+        if (gost.file_name) {
+            currentFileDisplay.textContent = '📄 Текущий файл: ' + gost.file_name;
+        } else {
+            currentFileDisplay.textContent = '';
+        }
+        
+        clearEditFileDisplay();
+        clearEditStatus();
+        
+        const modal = document.getElementById('editModal');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+    }
+    
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('editForm').reset();
+            clearEditStatus();
+            clearEditFileDisplay();
+        }, 300);
+    }
+    
+    function addNewCategoryEdit() {
+        const categoryName = prompt('Введите название новой категории:');
+        if (categoryName && categoryName.trim()) {
+            const trimmedName = categoryName.trim();
+            const select = document.getElementById('edit_category');
+            
+            let exists = false;
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value.toLowerCase() === trimmedName.toLowerCase()) {
+                    exists = true;
+                    break;
+                }
+            }
+            
+            if (!exists) {
+                const newOption = document.createElement('option');
+                newOption.value = trimmedName;
+                newOption.textContent = trimmedName;
+                select.appendChild(newOption);
+                select.value = trimmedName;
+                alert('✅ Категория "' + trimmedName + '" добавлена');
+            } else {
+                alert('⚠️ Такая категория уже существует');
+                select.value = trimmedName;
+            }
+        }
+    }
+    
+    function clearEditStatus() {
+        const statusEl = document.getElementById('editUploadStatus');
+        if (statusEl) {
+            statusEl.className = 'upload-status';
+            statusEl.textContent = '';
+        }
+    }
+    
+    function showEditStatus(message, type) {
+        const statusEl = document.getElementById('editUploadStatus');
+        statusEl.textContent = message;
+        statusEl.className = 'upload-status ' + type;
+        statusEl.style.display = 'block';
+    }
+    
     // Обработчик выбора файла
     document.addEventListener('DOMContentLoaded', function() {
         const fileInput = document.getElementById('gost_file');
@@ -952,6 +1136,49 @@ $notificationCount = count($notificationList);
                     fileInput.files = files;
                     const event = new Event('change');
                     fileInput.dispatchEvent(event);
+                }
+            });
+        }
+        
+        // Обработчик для редактирования
+        const editFileInput = document.getElementById('edit_gost_file');
+        const editWrapper = document.getElementById('editFileUploadWrapper');
+        const editFileNameDisplay = document.getElementById('editFileNameDisplay');
+        
+        if (editFileInput && editWrapper && editFileNameDisplay) {
+            editFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    editWrapper.classList.add('has-file');
+                    editFileNameDisplay.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
+                } else {
+                    editWrapper.classList.remove('has-file');
+                    editFileNameDisplay.textContent = '';
+                }
+            });
+            
+            editWrapper.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                editWrapper.style.borderColor = 'var(--primary-color)';
+                editWrapper.style.background = 'rgba(37, 99, 235, 0.1)';
+            });
+            
+            editWrapper.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                editWrapper.style.borderColor = '';
+                editWrapper.style.background = '';
+            });
+            
+            editWrapper.addEventListener('drop', function(e) {
+                e.preventDefault();
+                editWrapper.style.borderColor = '';
+                editWrapper.style.background = '';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    editFileInput.files = files;
+                    const event = new Event('change');
+                    editFileInput.dispatchEvent(event);
                 }
             });
         }
@@ -1043,20 +1270,92 @@ $notificationCount = count($notificationList);
         }
     }
     
+    async function submitGostEdit(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const statusEl = document.getElementById('editUploadStatus');
+        
+        clearEditStatus();
+        
+        const index = form.index.value;
+        const gostNumber = form.gost_number.value.trim();
+        const title = form.title.value.trim();
+        const category = form.category.value.trim();
+        const file = form.gost_file.files[0];
+        
+        if (!gostNumber || !title || !category) {
+            showEditStatus('⚠️ Заполните все обязательные поля', 'error');
+            return;
+        }
+        
+        if (file && file.type !== 'application/pdf' && file.type !== 'application/x-pdf') {
+            showEditStatus('⚠️ Разрешены только PDF файлы', 'error');
+            return;
+        }
+        
+        if (file && file.size > 50 * 1024 * 1024) {
+            showEditStatus('⚠️ Файл слишком большой (максимум 50 MB)', 'error');
+            return;
+        }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Сохранение...';
+        
+        try {
+            const response = await fetch('upload_gost.php?action=edit', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('HTTP ошибка: ' + response.status);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showEditStatus('✅ ' + result.message, 'success');
+                setTimeout(() => {
+                    closeEditModal();
+                    location.reload();
+                }, 1500);
+            } else {
+                showEditStatus('❌ ' + result.message, 'error');
+            }
+        } catch (error) {
+            showEditStatus('❌ Ошибка сети: ' + error.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }
+    }
+    
     // Закрытие модального окна по клику вне его
     window.onclick = function(event) {
-        const modal = document.getElementById('uploadModal');
-        if (event.target === modal) {
+        const uploadModal = document.getElementById('uploadModal');
+        const editModal = document.getElementById('editModal');
+        if (event.target === uploadModal) {
             closeUploadModal();
+        }
+        if (event.target === editModal) {
+            closeEditModal();
         }
     }
     
     // Закрытие по Escape
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            const modal = document.getElementById('uploadModal');
-            if (modal && (modal.style.display === 'flex' || modal.classList.contains('active'))) {
+            const uploadModal = document.getElementById('uploadModal');
+            const editModal = document.getElementById('editModal');
+            if (uploadModal && (uploadModal.style.display === 'flex' || uploadModal.classList.contains('active'))) {
                 closeUploadModal();
+            }
+            if (editModal && (editModal.style.display === 'flex' || editModal.classList.contains('active'))) {
+                closeEditModal();
             }
         }
     });
