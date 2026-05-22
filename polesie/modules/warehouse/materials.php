@@ -1267,45 +1267,8 @@ function updatePropertyFiltersWithoutSubmit() {
         filter.style.display = 'none';
     });
     
-    // НЕ сбрасываем поиск - фильтрация происходит мгновенно на клиенте
-    
-    // Фильтруем карточки по выбранной категории на клиенте
-    const cards = document.querySelectorAll('#materialsGrid .material-card');
-    let visibleCount = 0;
-    
-    cards.forEach(card => {
-        const cardCategory = card.dataset.category || '';
-        if (selectedCategory === '' || cardCategory == selectedCategory) {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-    
-    // Обновляем счетчик
-    const countEl = document.querySelector('.stats-count strong');
-    if (countEl) {
-        countEl.textContent = visibleCount;
-    }
-    
-    // Показываем сообщение если ничего не найдено
-    const emptyState = document.querySelector('.empty-state');
-    if (visibleCount === 0 && cards.length > 0) {
-        if (!emptyState) {
-            const grid = document.getElementById('materialsGrid');
-            const emptyHtml = `
-                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                    <div class="empty-state-icon">🔍</div>
-                    <h3>Ничего не найдено</h3>
-                    <p>Попробуйте выбрать другую категорию</p>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', emptyHtml);
-        }
-    } else if (emptyState && visibleCount > 0) {
-        emptyState.remove();
-    }
+    // Вызываем debouncedSearch для фильтрации с учетом всех параметров
+    debouncedSearch();
     
     // Показываем соответствующие фильтры свойств для выбранной категории
     if (selectedCategory && availableCombinations[selectedCategory]) {
@@ -1545,6 +1508,18 @@ document.addEventListener('DOMContentLoaded', function() {
 function debouncedSearch() {
     const query = document.getElementById('dynamicSearch').value.toLowerCase();
     
+    // Получаем текущие значения всех фильтров
+    const selectedCategory = document.getElementById('categorySelect')?.value || '';
+    const selectedDiameter = document.getElementById('diameterSelect')?.value || '';
+    const selectedLength = document.getElementById('lengthSelect')?.value || '';
+    const selectedStrengthClass = document.getElementById('strengthClassSelect')?.value || '';
+    const selectedCoating = document.getElementById('coatingSelect')?.value || '';
+    const selectedGrade = document.querySelector('select[name="grade"]')?.value || '';
+    const selectedStandard = document.querySelector('select[name="standard"]')?.value || '';
+    const selectedForm = document.querySelector('select[name="form"]')?.value || '';
+    const selectedCritical = document.querySelector('select[name="critical"]')?.value || '';
+    const selectedCert = document.querySelector('select[name="cert"]')?.value || '';
+    
     // Фильтруем карточки мгновенно без отправки формы
     const cards = document.querySelectorAll('#materialsGrid .material-card');
     let visibleCount = 0;
@@ -1555,10 +1530,82 @@ function debouncedSearch() {
         const category = card.dataset.category || '';
         const subcategory = card.dataset.subcategory || '';
         const gost = card.dataset.gost || '';
+        const specData = JSON.parse(card.dataset.specs || '{}');
         
-        // Мгновенная проверка: ищем в названии, коде, категории, подкатегории или ГОСТе
-        if (name.includes(query) || code.includes(query) || 
-            category.includes(query) || subcategory.includes(query) || gost.includes(query)) {
+        // Проверка поиска по названию, коду, категории, подкатегории или ГОСТе
+        const searchMatch = query === '' || 
+                           name.includes(query) || 
+                           code.includes(query) || 
+                           category.includes(query) || 
+                           subcategory.includes(query) || 
+                           gost.includes(query);
+        
+        // Проверка категории
+        const categoryMatch = selectedCategory === '' || category == selectedCategory;
+        
+        // Проверка свойств
+        let propertyMatch = true;
+        
+        if (selectedDiameter !== '') {
+            const diameter = specData['thread_diameter_mm'] || specData['diameter_mm'] || 
+                            specData['conductor_diameter_mm'] || specData['nominal_diameter_mm'];
+            propertyMatch = propertyMatch && diameter && (String(diameter) === String(selectedDiameter));
+        }
+        
+        if (selectedLength !== '') {
+            const length = specData['length_mm'] || specData['length_m'];
+            if (Array.isArray(length)) {
+                propertyMatch = propertyMatch && length.includes(String(selectedLength));
+            } else {
+                propertyMatch = propertyMatch && length && (String(length) === String(selectedLength));
+            }
+        }
+        
+        if (selectedStrengthClass !== '') {
+            const strengthClass = specData['strength_class'];
+            propertyMatch = propertyMatch && strengthClass && (String(strengthClass) === String(selectedStrengthClass));
+        }
+        
+        if (selectedCoating !== '') {
+            const coating = specData['coating'];
+            propertyMatch = propertyMatch && coating && (String(coating) === String(selectedCoating));
+        }
+        
+        if (selectedGrade !== '') {
+            const grade = specData['material_grade'];
+            propertyMatch = propertyMatch && grade && (String(grade) === String(selectedGrade));
+        }
+        
+        if (selectedStandard !== '') {
+            const standard = specData['standard_doc'];
+            propertyMatch = propertyMatch && standard && (String(standard) === String(selectedStandard));
+        }
+        
+        if (selectedForm !== '') {
+            const form = specData['product_form'];
+            propertyMatch = propertyMatch && form && (String(form) === String(selectedForm));
+        }
+        
+        if (selectedCritical !== '') {
+            const isCritical = !!specData['is_critical'];
+            if (selectedCritical === 'critical') {
+                propertyMatch = propertyMatch && isCritical;
+            } else if (selectedCritical === 'non_critical') {
+                propertyMatch = propertyMatch && !isCritical;
+            }
+        }
+        
+        if (selectedCert !== '') {
+            const requiresCert = !!specData['requires_cert'];
+            if (selectedCert === 'required') {
+                propertyMatch = propertyMatch && requiresCert;
+            } else if (selectedCert === 'not_required') {
+                propertyMatch = propertyMatch && !requiresCert;
+            }
+        }
+        
+        // Показываем карточку только если все условия выполнены
+        if (searchMatch && categoryMatch && propertyMatch) {
             card.style.display = 'block';
             visibleCount++;
         } else {
@@ -1581,7 +1628,7 @@ function debouncedSearch() {
                 <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
                     <div class="empty-state-icon">🔍</div>
                     <h3>Ничего не найдено</h3>
-                    <p>Попробуйте изменить поисковый запрос</p>
+                    <p>Попробуйте изменить поисковый запрос или параметры фильтрации</p>
                 </div>
             `;
             grid.insertAdjacentHTML('beforeend', emptyHtml);
@@ -1604,121 +1651,8 @@ function clearSearchFilter() {
 
 // Фильтрация по свойствам (диаметр, длина, класс прочности, покрытие) - мгновенно на клиенте
 function filterByProperty(property, value) {
-    const cards = document.querySelectorAll('#materialsGrid .material-card');
-    let visibleCount = 0;
-    
-    // Получаем текущее значение поиска
-    const searchQuery = (document.getElementById('dynamicSearch')?.value || '').toLowerCase();
-    
-    cards.forEach(card => {
-        const cardCategory = card.dataset.category || '';
-        const selectedCategory = document.getElementById('categorySelect')?.value || '';
-        
-        // Проверяем соответствие категории
-        const categoryMatch = selectedCategory === '' || cardCategory == selectedCategory;
-        
-        // Проверяем соответствие поиску
-        const name = card.dataset.name || '';
-        const code = card.dataset.code || '';
-        const subcategory = card.dataset.subcategory || '';
-        const gost = card.dataset.gost || '';
-        const searchMatch = searchQuery === '' || 
-                           name.includes(searchQuery) || 
-                           code.includes(searchQuery) || 
-                           subcategory.includes(searchQuery) || 
-                           gost.includes(searchQuery);
-        
-        // Проверяем соответствие свойству
-        let propertyMatch = true;
-        if (value !== '') {
-            // Получаем данные о свойствах из карточки (из spec-data атрибута)
-            const specData = JSON.parse(card.dataset.specs || '{}');
-            
-            switch(property) {
-                case 'diameter':
-                    const diameter = specData['thread_diameter_mm'] || specData['diameter_mm'] || 
-                                    specData['conductor_diameter_mm'] || specData['nominal_diameter_mm'];
-                    propertyMatch = diameter && (String(diameter) === String(value));
-                    break;
-                case 'length':
-                    const length = specData['length_mm'] || specData['length_m'];
-                    if (Array.isArray(length)) {
-                        propertyMatch = length.includes(String(value));
-                    } else {
-                        propertyMatch = length && (String(length) === String(value));
-                    }
-                    break;
-                case 'strength_class':
-                    const strengthClass = specData['strength_class'];
-                    propertyMatch = strengthClass && (String(strengthClass) === String(value));
-                    break;
-                case 'coating':
-                    const coating = specData['coating'];
-                    propertyMatch = coating && (String(coating) === String(value));
-                    break;
-                case 'grade':
-                    const grade = specData['material_grade'];
-                    propertyMatch = grade && (String(grade) === String(value));
-                    break;
-                case 'standard':
-                    const standard = specData['standard_doc'];
-                    propertyMatch = standard && (String(standard) === String(value));
-                    break;
-                case 'form':
-                    const form = specData['product_form'];
-                    propertyMatch = form && (String(form) === String(value));
-                    break;
-                case 'critical':
-                    const isCritical = !!specData['is_critical'];
-                    if (value === 'critical') {
-                        propertyMatch = isCritical;
-                    } else if (value === 'non_critical') {
-                        propertyMatch = !isCritical;
-                    }
-                    break;
-                case 'cert':
-                    const requiresCert = !!specData['requires_cert'];
-                    if (value === 'required') {
-                        propertyMatch = requiresCert;
-                    } else if (value === 'not_required') {
-                        propertyMatch = !requiresCert;
-                    }
-                    break;
-            }
-        }
-        
-        // Показываем карточку только если все условия выполнены
-        if (categoryMatch && searchMatch && propertyMatch) {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-    
-    // Обновляем счетчик
-    const countEl = document.querySelector('.stats-count strong');
-    if (countEl) {
-        countEl.textContent = visibleCount;
-    }
-    
-    // Показываем сообщение если ничего не найдено
-    const emptyState = document.querySelector('.empty-state');
-    if (visibleCount === 0 && cards.length > 0) {
-        if (!emptyState) {
-            const grid = document.getElementById('materialsGrid');
-            const emptyHtml = `
-                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                    <div class="empty-state-icon">🔍</div>
-                    <h3>Ничего не найдено</h3>
-                    <p>Попробуйте изменить параметры фильтрации</p>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', emptyHtml);
-        }
-    } else if (emptyState && visibleCount > 0) {
-        emptyState.remove();
-    }
+    // Просто вызываем debouncedSearch, который учитывает все фильтры
+    debouncedSearch();
 }
 
 // Изменение сортировки - мгновенно на клиенте
