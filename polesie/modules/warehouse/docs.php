@@ -620,7 +620,7 @@ $notificationCount = count($notificationList);
                                 <button class="btn-icon edit-gost-btn" 
                                         onclick="openEditModal(<?= $index ?>); event.stopPropagation();" 
                                         title="Редактировать"
-                                        style="align-self: flex-end; margin: 12px 0 0 0; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                        style="align-self: flex-end; margin: 12px 0 0 auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
                                         onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
                                         onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
                                     ✏️
