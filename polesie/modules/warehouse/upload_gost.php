@@ -101,7 +101,7 @@ if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
 }
 
 // Загрузка существующих данных
-$docsPath = BASE_PATH . '/../list_materials_docs.json';
+$docsPath = BASE_PATH . '/list_materials_docs.json';
 $docsData = [];
 
 if (file_exists($docsPath)) {
