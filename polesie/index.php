@@ -97,12 +97,12 @@ $pageTitle = 'Панель управления';
 <body>
     <div class="app-container">
         <!-- Боковая панель -->
-        <?php include 'includes/sidebar.php'; ?>
+        <?php include BASE_PATH . '/includes/sidebar.php'; ?>
         
         <!-- Основной контент -->
         <div class="main-content">
             <!-- Верхняя панель -->
-            <?php include 'includes/topbar.php'; ?>
+            <?php include BASE_PATH . '/includes/topbar.php'; ?>
             
             <!-- Контентная область -->
             <div class="content-area">

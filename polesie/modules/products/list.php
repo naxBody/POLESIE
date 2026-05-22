@@ -44,8 +44,8 @@ $products = $stmt->fetchAll();
 $catStmt = $pdo->query("SELECT * FROM product_categories ORDER BY name");
 $categories = $catStmt->fetchAll();
 
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
+require_once BASE_PATH . '/includes/sidebar.php';
+require_once BASE_PATH . '/includes/topbar.php';
 ?>
 
 <div class="content">

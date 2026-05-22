@@ -110,10 +110,10 @@ $pageTitle = 'Заказы';
 </head>
 <body>
     <div class="app-container">
-        <?php include '../../includes/sidebar.php'; ?>
+        <?php require_once BASE_PATH . '/includes/sidebar.php'; ?>
         
         <div class="main-content">
-            <?php include '../../includes/topbar.php'; ?>
+            <?php require_once BASE_PATH . '/includes/topbar.php'; ?>
             
             <div class="content-area">
                 <!-- Фильтры -->

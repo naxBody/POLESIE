@@ -87,8 +87,8 @@ $topProducts = $pdo->prepare("
 $topProducts->execute([$dateFrom, $dateTo]);
 $topProductsList = $topProducts->fetchAll();
 
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
+require_once BASE_PATH . '/includes/sidebar.php';
+require_once BASE_PATH . '/includes/topbar.php';
 ?>
 
 <div class="content">
