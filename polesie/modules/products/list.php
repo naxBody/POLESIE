@@ -43,26 +43,43 @@ $products = $stmt->fetchAll();
 // Получение категорий
 $catStmt = $pdo->query("SELECT * FROM product_categories ORDER BY name");
 $categories = $catStmt->fetchAll();
-
-require_once BASE_PATH . '/includes/sidebar.php';
-require_once BASE_PATH . '/includes/topbar.php';
 ?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <?php include BASE_PATH . '/includes/sidebar.php'; ?>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Верхняя панель -->
+            <?php include BASE_PATH . '/includes/topbar.php'; ?>
+            
+            <!-- Контентная область -->
+            <div class="content-area">
+                <div class="content">
+                    <div class="page-header">
+                        <div class="page-header-title">
+                            <h2>📦 Продукция</h2>
+                            <p>Каталог выпускаемой продукции</p>
+                        </div>
+                        <div class="page-header-actions">
+                            <?php if (hasPermission('products.create')): ?>
+                                <a href="create.php" class="btn btn-primary">+ Добавить</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
 
-<div class="content">
-    <div class="page-header">
-        <div class="page-header-title">
-            <h2>📦 Продукция</h2>
-            <p>Каталог выпускаемой продукции</p>
-        </div>
-        <div class="page-header-actions">
-            <?php if (hasPermission('products.create')): ?>
-                <a href="create.php" class="btn btn-primary">+ Добавить</a>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
+                    <div class="card">
+                        <div class="card-body">
             <form method="GET" class="filter-form">
                 <div class="filter-row">
                     <input type="text" name="search" placeholder="Поиск по названию, артикулу..." value="<?= e($search) ?>" 
