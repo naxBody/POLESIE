@@ -1,1 +1,1 @@
-(list_materials.json)
+Nothing should be ignored based on the provided file changes. The modified file 'polesie/modules/warehouse/materials.php' is a PHP source code file that should not be added to .gitignore. Since there are no build artifacts, dependencies, or temporary files in the changes, no additional ignore rules are needed.
