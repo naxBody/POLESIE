@@ -266,12 +266,12 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
 <body>
     <div class="app-container">
         <!-- Боковая панель -->
-        <?php include __DIR__ . '/../../../includes/sidebar.php'; ?>
+        <?php include BASE_PATH . '/includes/sidebar.php'; ?>
         
         <!-- Основной контент -->
         <div class="main-content">
             <!-- Верхняя панель -->
-            <?php include __DIR__ . '/../../../includes/topbar.php'; ?>
+            <?php include BASE_PATH . '/includes/topbar.php'; ?>
             
             <!-- Контентная область -->
             <div class="content-area">

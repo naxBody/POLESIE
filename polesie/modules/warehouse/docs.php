@@ -272,10 +272,10 @@ $notificationCount = count($notificationList);
 </head>
 <body>
     <div class="app-container">
-        <?php include '../../includes/sidebar.php'; ?>
+        <?php include BASE_PATH . '/includes/sidebar.php'; ?>
         
         <div class="main-content">
-            <?php include '../../includes/topbar.php'; ?>
+            <?php include BASE_PATH . '/includes/topbar.php'; ?>
             
             <div class="content-area">
                 <div class="docs-page">

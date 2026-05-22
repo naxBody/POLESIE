@@ -39,8 +39,8 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $contractors = $stmt->fetchAll();
 
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
+require_once BASE_PATH . '/includes/sidebar.php';
+require_once BASE_PATH . '/includes/topbar.php';
 ?>
 
 <div class="content">
