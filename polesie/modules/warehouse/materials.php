@@ -1039,6 +1039,8 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                      data-category="<?= e($categoryName) ?>"
                      data-subcategory="<?= e($subcategoryName) ?>"
                      data-gost="<?= e($gostStandard) ?>"
+                     data-is-critical="<?= !empty($material['is_critical']) ? '1' : '0' ?>"
+                     data-requires-cert="<?= !empty($material['requires_cert']) ? '1' : '0' ?>"
                      data-specs='<?= htmlspecialchars(json_encode($specs, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'
                      onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)">
                     <div class="material-card-header">
@@ -1497,7 +1499,7 @@ function debouncedSearch() {
         }
         
         if (selectedCritical !== '') {
-            const isCritical = !!specData['is_critical'];
+            const isCritical = card.dataset.isCritical === '1';
             if (selectedCritical === 'critical') {
                 propertyMatch = propertyMatch && isCritical;
             } else if (selectedCritical === 'non_critical') {
@@ -1506,7 +1508,7 @@ function debouncedSearch() {
         }
         
         if (selectedCert !== '') {
-            const requiresCert = !!specData['requires_cert'];
+            const requiresCert = card.dataset.requiresCert === '1';
             if (selectedCert === 'required') {
                 propertyMatch = propertyMatch && requiresCert;
             } else if (selectedCert === 'not_required') {
@@ -1576,7 +1578,11 @@ function changeSort(sortBy) {
     const grid = document.getElementById('materialsGrid');
     const cards = Array.from(grid.querySelectorAll('.material-card'));
     
-    cards.sort((a, b) => {
+    // Сортируем только видимые карточки
+    const visibleCards = cards.filter(card => card.style.display !== 'none');
+    const hiddenCards = cards.filter(card => card.style.display === 'none');
+    
+    visibleCards.sort((a, b) => {
         let result = 0;
         switch(sortBy) {
             case 'name':
@@ -1597,8 +1603,9 @@ function changeSort(sortBy) {
         return result;
     });
     
-    // Переставляем карточки в DOM
-    cards.forEach(card => grid.appendChild(card));
+    // Переставляем карточки в DOM: сначала видимые (отсортированные), потом скрытые
+    visibleCards.forEach(card => grid.appendChild(card));
+    hiddenCards.forEach(card => grid.appendChild(card));
 }
 
 function setView(view) {
