@@ -39,15 +39,15 @@
         <!-- Заказы -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Заказы</div>
-            <a href="orders/list.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/orders/list.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📦</span>
                 <span>Все заказы</span>
             </a>
-            <a href="orders/create.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/orders/create.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">➕</span>
                 <span>Новый заказ</span>
             </a>
-            <a href="contractors/list.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/contractors/list.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">🏢</span>
                 <span>Контрагенты</span>
             </a>
@@ -56,15 +56,15 @@
         <!-- Производство -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Производство</div>
-            <a href="production/list.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/production/list.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">⚙️</span>
                 <span>Производственные задания</span>
             </a>
-            <a href="production/stages.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/production/stages.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📋</span>
                 <span>Этапы производства</span>
             </a>
-            <a href="products/list.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/products/list.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">🔧</span>
                 <span>Продукция</span>
             </a>
@@ -73,11 +73,11 @@
         <!-- Контроль качества -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Контроль качества</div>
-            <a href="quality/checks.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/quality/checks.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">✅</span>
                 <span>Проверки</span>
             </a>
-            <a href="quality/reports.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/quality/reports.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📈</span>
                 <span>Отчеты по качеству</span>
             </a>
@@ -107,11 +107,11 @@
         <!-- Сотрудники -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Сотрудники</div>
-            <a href="employees/list.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/employees/list.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">👥</span>
                 <span>Все сотрудники</span>
             </a>
-            <a href="employees/departments.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/employees/departments.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">🏛️</span>
                 <span>Структура</span>
             </a>
@@ -120,15 +120,15 @@
         <!-- Отчеты -->
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Отчеты</div>
-            <a href="reports/production.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/reports/production.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📊</span>
                 <span>Производство</span>
             </a>
-            <a href="reports/sales.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/reports/sales.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">💰</span>
                 <span>Продажи</span>
             </a>
-            <a href="reports/analytics.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/reports/analytics.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📈</span>
                 <span>Аналитика</span>
             </a>
@@ -138,15 +138,15 @@
         <?php if ($user['role_code'] === 'admin'): ?>
         <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Администрирование</div>
-            <a href="settings/users.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/settings/users.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">👤</span>
                 <span>Пользователи</span>
             </a>
-            <a href="settings/system.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/settings/system.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">⚙️</span>
                 <span>Настройки системы</span>
             </a>
-            <a href="settings/logs.php" class="sidebar-nav-item">
+            <a href="/polesie/modules/settings/logs.php" class="sidebar-nav-item">
                 <span class="sidebar-nav-icon">📜</span>
                 <span>Журнал событий</span>
             </a>
