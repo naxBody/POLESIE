@@ -911,6 +911,13 @@ $notificationCount = count($notificationList);
         return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     }
     
+    function showUploadStatus(message, type) {
+        const statusEl = document.getElementById('uploadStatus');
+        statusEl.textContent = message;
+        statusEl.className = 'upload-status ' + type;
+        statusEl.style.display = 'block';
+    }
+    
     async function submitGostUpload(event) {
         event.preventDefault();
         
@@ -980,13 +987,6 @@ $notificationCount = count($notificationList);
             submitBtn.disabled = false;
             submitBtn.textContent = originalBtnText;
         }
-    }
-    
-    function showUploadStatus(message, type) {
-        const statusEl = document.getElementById('uploadStatus');
-        statusEl.textContent = message;
-        statusEl.className = 'upload-status ' + type;
-        statusEl.style.display = 'block';
     }
     
     // Закрытие модального окна по клику вне его
