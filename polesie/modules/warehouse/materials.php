@@ -318,6 +318,8 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
 
 .dynamic-filter {
     display: none;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .filter-label {
@@ -1033,6 +1035,7 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                 <div class="material-card" 
                      data-name="<?= e($material['name_full']) ?>"
                      data-code="<?= e($material['code_internal']) ?>"
+                     data-category-id="<?= $material['category_id'] ?>"
                      data-category="<?= e($categoryName) ?>"
                      data-subcategory="<?= e($subcategoryName) ?>"
                      data-gost="<?= e($gostStandard) ?>"
@@ -1267,9 +1270,14 @@ function updatePropertyFilters() {
     const categorySelect = document.getElementById('categorySelect');
     const selectedCategory = categorySelect?.value || '';
     
-    // Скрываем все динамические фильтры
+    // Скрываем все динамические фильтры и очищаем их
     document.querySelectorAll('.dynamic-filter').forEach(filter => {
         filter.style.display = 'none';
+        const select = filter.querySelector('select');
+        if (select) {
+            select.innerHTML = '<option value="">Все</option>';
+            select.value = '';
+        }
     });
     
     // Удаляем информацию о формате кода если есть
@@ -1306,6 +1314,97 @@ function updatePropertyFilters() {
         filtersPanel.appendChild(infoDiv);
     }
     
+    // Заполняем фильтр диаметра
+    const diameterFilter = document.getElementById('diameterFilter');
+    const diameterSelect = document.getElementById('diameterSelect');
+    if (diameterFilter && diameterSelect && combos.thread_diameter_mm) {
+        diameterFilter.style.display = 'flex';
+        const diameters = Array.isArray(combos.thread_diameter_mm) ? combos.thread_diameter_mm : Object.keys(combos.thread_diameter_mm);
+        diameters.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = String(d);
+            opt.textContent = d + ' мм';
+            diameterSelect.appendChild(opt);
+        });
+    } else if (diameterFilter && diameterSelect && combos.diameter_mm) {
+        diameterFilter.style.display = 'flex';
+        const diameters = Array.isArray(combos.diameter_mm) ? combos.diameter_mm : Object.keys(combos.diameter_mm);
+        diameters.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = String(d);
+            opt.textContent = d + ' мм';
+            diameterSelect.appendChild(opt);
+        });
+    } else if (diameterFilter && diameterSelect && combos.conductor_diameter_mm) {
+        diameterFilter.style.display = 'flex';
+        const diameters = Array.isArray(combos.conductor_diameter_mm) ? combos.conductor_diameter_mm : Object.keys(combos.conductor_diameter_mm);
+        diameters.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = String(d);
+            opt.textContent = d + ' мм';
+            diameterSelect.appendChild(opt);
+        });
+    } else if (diameterFilter && diameterSelect && combos.nominal_diameter_mm) {
+        diameterFilter.style.display = 'flex';
+        const diameters = Array.isArray(combos.nominal_diameter_mm) ? combos.nominal_diameter_mm : Object.keys(combos.nominal_diameter_mm);
+        diameters.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = String(d);
+            opt.textContent = d + ' мм';
+            diameterSelect.appendChild(opt);
+        });
+    }
+    
+    // Заполняем фильтр длины
+    const lengthFilter = document.getElementById('lengthFilter');
+    const lengthSelect = document.getElementById('lengthSelect');
+    if (lengthFilter && lengthSelect && combos.length_mm) {
+        lengthFilter.style.display = 'flex';
+        let lengths = [];
+        if (Array.isArray(combos.length_mm)) {
+            lengths = combos.length_mm;
+        } else if (typeof combos.length_mm === 'object') {
+            // Если length_mm - это объект { "6": [...], "8": [...] }, берем все уникальные значения
+            const allLengths = new Set();
+            Object.values(combos.length_mm).forEach(arr => {
+                if (Array.isArray(arr)) arr.forEach(l => allLengths.add(l));
+            });
+            lengths = Array.from(allLengths).sort((a, b) => a - b);
+        }
+        lengths.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = String(l);
+            opt.textContent = l + ' мм';
+            lengthSelect.appendChild(opt);
+        });
+    }
+    
+    // Заполняем фильтр класса прочности
+    const strengthClassFilter = document.getElementById('strengthClassFilter');
+    const strengthClassSelect = document.getElementById('strengthClassSelect');
+    if (strengthClassFilter && strengthClassSelect && combos.strength_class) {
+        strengthClassFilter.style.display = 'flex';
+        combos.strength_class.forEach(sc => {
+            const opt = document.createElement('option');
+            opt.value = String(sc);
+            opt.textContent = sc;
+            strengthClassSelect.appendChild(opt);
+        });
+    }
+    
+    // Заполняем фильтр покрытия
+    const coatingFilter = document.getElementById('coatingFilter');
+    const coatingSelect = document.getElementById('coatingSelect');
+    if (coatingFilter && coatingSelect && combos.coating) {
+        coatingFilter.style.display = 'flex';
+        combos.coating.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = String(c);
+            opt.textContent = c;
+            coatingSelect.appendChild(opt);
+        });
+    }
+    
     debouncedSearch();
 }
 
@@ -1337,6 +1436,7 @@ function debouncedSearch() {
     cards.forEach(card => {
         const name = card.dataset.name || '';
         const code = card.dataset.code || '';
+        const categoryId = card.dataset.categoryId || '';
         const category = card.dataset.category || '';
         const subcategory = card.dataset.subcategory || '';
         const gost = card.dataset.gost || '';
@@ -1350,8 +1450,8 @@ function debouncedSearch() {
                            subcategory.includes(query) || 
                            gost.includes(query);
         
-        // Проверка категории
-        const categoryMatch = selectedCategory === '' || category == selectedCategory;
+        // Проверка категории (сравниваем по ID подкатегории)
+        const categoryMatch = selectedCategory === '' || categoryId == selectedCategory;
         
         // Проверка свойств
         let propertyMatch = true;
