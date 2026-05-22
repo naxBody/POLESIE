@@ -16,9 +16,19 @@ define('APP_NAME', 'ОАО "Полесьеэлектромаш" - Система
 define('APP_VERSION', '1.0.0');
 
 // Динамическое определение базового URL приложения
-$scriptPath = dirname($_SERVER['SCRIPT_NAME']);
-// Удаляем возможные дублирующиеся сегменты пути и нормализуем
-$basePath = rtrim($scriptPath, '/');
+// Определяем путь относительно корня проекта polesie
+$scriptPath = $_SERVER['SCRIPT_NAME'];
+// Находим позицию '/polesie/' в пути (ищем точное совпадение с нижним регистром)
+// Проект всегда находится в директории polesie (в нижнем регистре)
+$pattern = '/polesie/';
+$polesiePos = strpos($scriptPath, $pattern);
+if ($polesiePos !== false) {
+    // Базовый путь - это всё до конца /polesie (включая саму директорию polesie)
+    $basePath = rtrim(substr($scriptPath, 0, $polesiePos + strlen($pattern)), '/');
+} else {
+    // Если не нашли /polesie/, используем dirname
+    $basePath = rtrim(dirname($scriptPath), '/');
+}
 if ($basePath === '' || $basePath === '/') {
     $basePath = '';
 }
