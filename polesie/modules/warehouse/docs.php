@@ -603,8 +603,8 @@ $notificationCount = count($notificationList);
                                 }
                                 $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
-                            <div class="standard-card-wrapper" style="position: relative;">
-                                <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
+                            <div class="standard-card-wrapper" style="position: relative; display: flex; flex-direction: column;">
+                                <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit; flex-grow: 1;">
                                     <div class="standard-card" 
                                          data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
                                          data-title="<?= e(mb_strtolower($gost['title'], 'UTF-8')) ?>"
@@ -618,9 +618,9 @@ $notificationCount = count($notificationList);
                                     </div>
                                 </a>
                                 <button class="btn-icon edit-gost-btn" 
-                                        onclick="openEditModal(<?= $index ?>)" 
+                                        onclick="openEditModal(<?= $index ?>); event.stopPropagation();" 
                                         title="Редактировать"
-                                        style="position: absolute; top: 12px; right: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                        style="align-self: flex-end; margin: 12px 0 0 0; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
                                         onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
                                         onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
                                     ✏️
