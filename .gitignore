@@ -1,14 +1,1 @@
-```php
-<?php
-// Polesie Warehouse Module Documentation
-
-/**
- * Warehouse Module Documentation
- * 
- * This module provides warehouse management functionality for the Polesie system.
- * It includes inventory tracking, stock management, and warehouse operations.
- */
-
-// No main execution - this is a documentation file
-?>
-```
+Nothing should be ignored based on the provided file changes. The only modified file is 'polesie/modules/warehouse/docs.php', which appears to be a source code file and should not be added to .gitignore. No build artifacts, dependencies, or temporary files are present in the changes.
