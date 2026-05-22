@@ -29,42 +29,59 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Проверка наличия файла
-if (!isset($_FILES['gost_file']) || $_FILES['gost_file']['error'] !== UPLOAD_ERR_OK) {
-    $errorMessages = [
-        UPLOAD_ERR_INI_SIZE => 'Файл слишком большой (превышен лимит php.ini)',
-        UPLOAD_ERR_FORM_SIZE => 'Файл слишком большой (превышен лимит формы)',
-        UPLOAD_ERR_PARTIAL => 'Файл загружен частично',
-        UPLOAD_ERR_NO_FILE => 'Файл не был загружен',
-        UPLOAD_ERR_NO_TMP_DIR => 'Отсутствует временная директория',
-        UPLOAD_ERR_CANT_WRITE => 'Ошибка записи файла на диск',
-        UPLOAD_ERR_EXTENSION => 'Загрузка прервана расширением PHP'
-    ];
-    $errorCode = $_FILES['gost_file']['error'] ?? UPLOAD_ERR_NO_FILE;
-    echo json_encode([
-        'success' => false, 
-        'message' => $errorMessages[$errorCode] ?? 'Ошибка загрузки файла'
-    ]);
+// Определяем действие: загрузка нового или редактирование
+$action = $_GET['action'] ?? 'upload';
+$isEdit = ($action === 'edit');
+
+// Для редактирования файл не обязателен
+$fileRequired = !$isEdit;
+$hasFile = isset($_FILES['gost_file']) && $_FILES['gost_file']['error'] !== UPLOAD_ERR_NO_FILE;
+
+if ($fileRequired && !$hasFile) {
+    echo json_encode(['success' => false, 'message' => 'Файл не был загружен']);
     exit;
 }
 
-$file = $_FILES['gost_file'];
-$allowedTypes = ['application/pdf', 'application/x-pdf'];
-$maxSize = 50 * 1024 * 1024; // 50 MB
+$file = null;
 
-// Проверка типа файла
-$finfo = new finfo(FILEINFO_MIME_TYPE);
-$fileType = $finfo->file($file['tmp_name']);
-
-if (!in_array($fileType, $allowedTypes)) {
-    echo json_encode(['success' => false, 'message' => 'Разрешены только PDF файлы']);
-    exit;
-}
-
-// Проверка размера
-if ($file['size'] > $maxSize) {
-    echo json_encode(['success' => false, 'message' => 'Файл слишком большой (максимум 50 MB)']);
-    exit;
+// Обрабатываем файл если он есть
+if ($hasFile) {
+    $file = $_FILES['gost_file'];
+    
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $errorMessages = [
+            UPLOAD_ERR_INI_SIZE => 'Файл слишком большой (превышен лимит php.ini)',
+            UPLOAD_ERR_FORM_SIZE => 'Файл слишком большой (превышен лимит формы)',
+            UPLOAD_ERR_PARTIAL => 'Файл загружен частично',
+            UPLOAD_ERR_NO_FILE => 'Файл не был загружен',
+            UPLOAD_ERR_NO_TMP_DIR => 'Отсутствует временная директория',
+            UPLOAD_ERR_CANT_WRITE => 'Ошибка записи файла на диск',
+            UPLOAD_ERR_EXTENSION => 'Загрузка прервана расширением PHP'
+        ];
+        echo json_encode([
+            'success' => false, 
+            'message' => $errorMessages[$file['error']] ?? 'Ошибка загрузки файла'
+        ]);
+        exit;
+    }
+    
+    $allowedTypes = ['application/pdf', 'application/x-pdf'];
+    $maxSize = 50 * 1024 * 1024; // 50 MB
+    
+    // Проверка типа файла
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $fileType = $finfo->file($file['tmp_name']);
+    
+    if (!in_array($fileType, $allowedTypes)) {
+        echo json_encode(['success' => false, 'message' => 'Разрешены только PDF файлы']);
+        exit;
+    }
+    
+    // Проверка размера
+    if ($file['size'] > $maxSize) {
+        echo json_encode(['success' => false, 'message' => 'Файл слишком большой (максимум 50 MB)']);
+        exit;
+    }
 }
 
 // Получение данных из формы
@@ -89,17 +106,6 @@ if (empty($category)) {
     exit;
 }
 
-// Извлечение номера ГОСТа для имени файла
-$gostNumberClean = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gostNumber);
-$fileName = 'gost_' . str_replace('.', '-', $gostNumberClean) . '.pdf';
-$uploadPath = ASSETS_PATH . '/gosts/' . $fileName;
-
-// Сохранение файла
-if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
-    echo json_encode(['success' => false, 'message' => 'Ошибка сохранения файла']);
-    exit;
-}
-
 // Загрузка существующих данных
 $docsPath = BASE_PATH . '/list_materials_docs.json';
 $docsData = [];
@@ -114,41 +120,95 @@ if (!isset($docsData['gost_standards'])) {
     $docsData['gost_standards'] = [];
 }
 
-// Добавление нового ГОСТа
-$newGost = [
+// Для редактирования - ищем существующий ГОСТ по индексу
+$existingGost = null;
+$existingIndex = null;
+
+if ($isEdit) {
+    $index = $_POST['index'] ?? null;
+    if ($index !== null && isset($docsData['gost_standards'][$index])) {
+        $existingGost = $docsData['gost_standards'][$index];
+        $existingIndex = $index;
+    }
+}
+
+// Извлечение номера ГОСТа для имени файла
+$gostNumberClean = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gostNumber);
+$newFileName = 'gost_' . str_replace('.', '-', $gostNumberClean) . '.pdf';
+$uploadPath = ASSETS_PATH . '/gosts/' . $newFileName;
+
+// Если это редактирование и файл не загружен, используем старый файл
+$fileName = $newFileName;
+if ($isEdit && $existingGost && !$hasFile) {
+    $fileName = $existingGost['file_name'] ?? $newFileName;
+}
+
+// Сохранение нового файла если он есть
+if ($hasFile) {
+    // Удаляем старый файл при редактировании если имя изменилось
+    if ($isEdit && $existingGost && $existingGost['file_name'] !== $fileName) {
+        $oldFilePath = ASSETS_PATH . '/gosts/' . $existingGost['file_name'];
+        if (file_exists($oldFilePath)) {
+            unlink($oldFilePath);
+        }
+    }
+    
+    if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        echo json_encode(['success' => false, 'message' => 'Ошибка сохранения файла']);
+        exit;
+    }
+}
+
+// Обновление или добавление ГОСТа
+$updatedGost = [
     'gost_number' => $gostNumber,
     'title' => $title,
     'category' => $category,
     'status' => $status,
-    'file_name' => $fileName,
-    'uploaded_at' => date('Y-m-d H:i:s'),
-    'uploaded_by' => $user['id']
+    'file_name' => $fileName
 ];
 
-// Проверяем, есть ли уже такой ГОСТ и обновляем его
-$found = false;
-foreach ($docsData['gost_standards'] as &$existingGost) {
-    if ($existingGost['gost_number'] === $gostNumber) {
-        $existingGost = $newGost;
-        $found = true;
-        break;
-    }
+// Сохраняем дату загрузки и пользователя если это редактирование
+if ($isEdit && $existingGost) {
+    $updatedGost['uploaded_at'] = $existingGost['uploaded_at'] ?? date('Y-m-d H:i:s');
+    $updatedGost['uploaded_by'] = $existingGost['uploaded_by'] ?? $user['id'];
+} else {
+    $updatedGost['uploaded_at'] = date('Y-m-d H:i:s');
+    $updatedGost['uploaded_by'] = $user['id'];
 }
 
-if (!$found) {
-    $docsData['gost_standards'][] = $newGost;
+// Обновляем или добавляем запись
+if ($isEdit && $existingIndex !== null) {
+    $docsData['gost_standards'][$existingIndex] = $updatedGost;
+} else {
+    // Проверяем, есть ли уже такой ГОСТ по номеру и обновляем его
+    $found = false;
+    foreach ($docsData['gost_standards'] as &$existingGostLoop) {
+        if ($existingGostLoop['gost_number'] === $gostNumber) {
+            $existingGostLoop = $updatedGost;
+            $found = true;
+            break;
+        }
+    }
+    
+    if (!$found) {
+        $docsData['gost_standards'][] = $updatedGost;
+    }
 }
 
 // Сохранение обновленных данных
 if (file_put_contents($docsPath, json_encode($docsData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+    $message = $isEdit ? 'ГОСТ успешно обновлён' : 'ГОСТ успешно загружен';
     echo json_encode([
         'success' => true, 
-        'message' => 'ГОСТ успешно загружен',
+        'message' => $message,
         'file_name' => $fileName,
         'gost_number' => $gostNumber
     ]);
 } else {
-    // Удаляем файл если не удалось сохранить JSON
-    unlink($uploadPath);
+    // Удаляем файл если не удалось сохранить JSON (только если файл был загружен)
+    if ($hasFile && file_exists($uploadPath)) {
+        unlink($uploadPath);
+    }
     echo json_encode(['success' => false, 'message' => 'Ошибка сохранения данных']);
 }
