@@ -1,1 +1,36 @@
-Nothing should be ignored based on the provided file changes. The modified file 'polesie/modules/warehouse/materials.php' is a PHP source code file that should be tracked in version control. No build artifacts, dependencies, temporary files, or other ignorable items were detected in the changes.
+```json
+{
+  "materials": [
+    {
+      "id": "mat_wood_oak",
+      "name": "Oak Wood Planks",
+      "category": "Wood",
+      "properties": {
+        "density": 750,
+        "hardness": 2,
+        "flammable": true
+      }
+    },
+    {
+      "id": "mat_stone_granite",
+      "name": "Granite",
+      "category": "Stone",
+      "properties": {
+        "density": 2700,
+        "hardness": 6,
+        "flammable": false
+      }
+    },
+    {
+      "id": "mat_metal_iron",
+      "name": "Iron",
+      "category": "Metal",
+      "properties": {
+        "density": 7870,
+        "hardness": 4,
+        "flammable": false
+      }
+    }
+  ]
+}
+```
