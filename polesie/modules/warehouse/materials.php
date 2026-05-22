@@ -852,7 +852,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                 
                 <div class="filter-group">
                     <label class="filter-label">Категория</label>
-                    <select name="category" class="filter-select" id="categorySelect" onchange="updatePropertyFilters()">
+                    <select name="category" class="filter-select" id="categorySelect" onchange="updatePropertyFiltersWithoutSubmit()">
                         <option value="">Все категории</option>
                         <?php foreach ($categories as $cat): ?>
                             <?php if (isset($cat['subcategories'])): ?>
@@ -971,7 +971,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
                         <?php if ($filterSearch): ?>
                             <span class="filter-chip">
                                 Поиск: <?= e($filterSearch) ?>
-                                <a href="?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'search', ARRAY_FILTER_USE_KEY)) ?>" class="filter-chip-remove">✕</a>
+                                <a href="#" onclick="clearSearchFilter(); return false;" class="filter-chip-remove">✕</a>
                             </span>
                         <?php endif; ?>
                         <?php if ($filterCategory): ?>
@@ -1294,8 +1294,8 @@ const availableCombinations = <?= $availableCombinationsJson ?>;
 
 let currentMaterial = null;
 
-// Функция обновления фильтров свойств при выборе категории
-function updatePropertyFilters() {
+// Функция обновления фильтров свойств при выборе категории (без перезагрузки)
+function updatePropertyFiltersWithoutSubmit() {
     const categorySelect = document.getElementById('categorySelect');
     const selectedCategory = categorySelect.value;
     
@@ -1309,15 +1309,133 @@ function updatePropertyFilters() {
     if (searchInput) {
         searchInput.value = '';
     }
+    
+    // Фильтруем карточки по выбранной категории на клиенте
     const cards = document.querySelectorAll('#materialsGrid .material-card');
+    let visibleCount = 0;
+    
     cards.forEach(card => {
-        card.style.display = 'block';
+        const cardCategory = card.dataset.category || '';
+        if (selectedCategory === '' || cardCategory == selectedCategory) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
     });
+    
     // Обновляем счетчик
     const countEl = document.querySelector('.stats-count strong');
     if (countEl) {
-        countEl.textContent = cards.length;
+        countEl.textContent = visibleCount;
     }
+    
+    // Показываем сообщение если ничего не найдено
+    const emptyState = document.querySelector('.empty-state');
+    if (visibleCount === 0 && cards.length > 0) {
+        if (!emptyState) {
+            const grid = document.getElementById('materialsGrid');
+            const emptyHtml = `
+                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Ничего не найдено</h3>
+                    <p>Попробуйте выбрать другую категорию</p>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', emptyHtml);
+        }
+    } else if (emptyState && visibleCount > 0) {
+        emptyState.remove();
+    }
+    
+    // Показываем соответствующие фильтры свойств для выбранной категории
+    if (selectedCategory && availableCombinations[selectedCategory]) {
+        const combos = availableCombinations[selectedCategory];
+        
+        // Диаметр
+        if (combos.diameters && combos.diameters.length > 0) {
+            const diameterFilter = document.getElementById('diameterFilter');
+            if (diameterFilter) {
+                diameterFilter.style.display = 'flex';
+                const select = document.getElementById('diameterSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все диаметры</option>' + 
+                        combos.diameters.map(d => `<option value="${d}">${d} мм</option>`).join('');
+                }
+            }
+        }
+        
+        // Длина
+        if (combos.lengths && combos.lengths.length > 0) {
+            const lengthFilter = document.getElementById('lengthFilter');
+            if (lengthFilter) {
+                lengthFilter.style.display = 'flex';
+                const select = document.getElementById('lengthSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все длины</option>' + 
+                        combos.lengths.map(l => `<option value="${l}">${l} мм</option>`).join('');
+                }
+            }
+        }
+        
+        // Класс прочности
+        if (combos.strength_classes && combos.strength_classes.length > 0) {
+            const strengthFilter = document.getElementById('strengthClassFilter');
+            if (strengthFilter) {
+                strengthFilter.style.display = 'flex';
+                const select = document.getElementById('strengthClassSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все классы</option>' + 
+                        combos.strength_classes.map(s => `<option value="${s}">${s}</option>`).join('');
+                }
+            }
+        }
+        
+        // Покрытие
+        if (combos.coatings && combos.coatings.length > 0) {
+            const coatingFilter = document.getElementById('coatingFilter');
+            if (coatingFilter) {
+                coatingFilter.style.display = 'flex';
+                const select = document.getElementById('coatingSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все покрытия</option>' + 
+                        combos.coatings.map(c => `<option value="${c}">${c}</option>`).join('');
+                }
+            }
+        }
+        
+        // Марка материала
+        if (combos.material_grades && combos.material_grades.length > 0) {
+            const gradeFilter = document.getElementById('gradeFilter');
+            if (gradeFilter) {
+                gradeFilter.style.display = 'flex';
+                const select = document.getElementById('gradeSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все марки</option>' + 
+                        combos.material_grades.map(g => `<option value="${g}">${g}</option>`).join('');
+                }
+            }
+        }
+        
+        // Стандарт
+        if (combos.standards && combos.standards.length > 0) {
+            const standardFilter = document.getElementById('standardFilter');
+            if (standardFilter) {
+                standardFilter.style.display = 'flex';
+                const select = document.getElementById('standardSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Все стандарты</option>' + 
+                        combos.standards.map(s => `<option value="${s}">${s}</option>`).join('');
+                }
+            }
+        }
+    }
+}
+
+// Функция обновления фильтров свойств при выборе категории (для совместимости)
+function updatePropertyFilters() {
+    updatePropertyFiltersWithoutSubmit();
+}
     // Удаляем empty state если есть
     const emptyState = document.querySelector('.empty-state');
     if (emptyState) {
@@ -1464,12 +1582,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePropertyFilters();
 });
 
-// Функция динамического поиска с задержкой (debounce) - мгновенная фильтрация на клиенте
-let searchTimeout;
+// Функция динамического поиска - мгновенная фильтрация на клиенте БЕЗ перезагрузки страницы (как в ГОСТах)
 function debouncedSearch() {
     const query = document.getElementById('dynamicSearch').value.toLowerCase();
     
-    // Сначала показываем все карточки, потом скрываем не подходящие
+    // Фильтруем карточки мгновенно без отправки формы
     const cards = document.querySelectorAll('#materialsGrid .material-card');
     let visibleCount = 0;
     
@@ -1480,7 +1597,7 @@ function debouncedSearch() {
         const subcategory = card.dataset.subcategory || '';
         const gost = card.dataset.gost || '';
         
-        // Мгновенная проверка: ищем в названии, коде, категории или ГОСТе
+        // Мгновенная проверка: ищем в названии, коде, категории, подкатегории или ГОСТе
         if (name.includes(query) || code.includes(query) || 
             category.includes(query) || subcategory.includes(query) || gost.includes(query)) {
             card.style.display = 'block';
@@ -1514,13 +1631,16 @@ function debouncedSearch() {
         emptyState.remove();
     }
     
-    // Очищаем таймер и НЕ отправляем форму сразу - фильтрация происходит на клиенте
-    clearTimeout(searchTimeout);
-    
-    // Отправляем форму только если пользователь закончил ввод (для обновления URL и серверной фильтрации)
-    searchTimeout = setTimeout(function() {
-        document.getElementById('filtersForm').submit();
-    }, 800);
+    // НЕ отправляем форму - фильтрация происходит только на клиенте
+}
+
+// Функция очистки поискового фильтра без перезагрузки страницы
+function clearSearchFilter() {
+    const searchInput = document.getElementById('dynamicSearch');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    debouncedSearch();
 }
 
 function setView(view) {
