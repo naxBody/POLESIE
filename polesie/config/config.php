@@ -18,10 +18,10 @@ define('APP_VERSION', '1.0.0');
 // Динамическое определение базового URL приложения
 // Определяем путь относительно корня проекта polesie
 $scriptPath = $_SERVER['SCRIPT_NAME'];
-// Находим позицию '/polesie/' в пути (ищем точное совпадение с нижним регистром)
-// Проект всегда находится в директории polesie (в нижнем регистре)
+// Находим позицию '/polesie/' в пути (регистронезависимый поиск)
+// Проект всегда находится в директории polesie (в нижнем или верхнем регистре)
 $pattern = '/polesie/';
-$polesiePos = strpos($scriptPath, $pattern);
+$polesiePos = stripos($scriptPath, $pattern); // Используем stripos для регистронезависимого поиска
 if ($polesiePos !== false) {
     // Базовый путь - это всё до конца /polesie (включая саму директорию polesie)
     $basePath = rtrim(substr($scriptPath, 0, $polesiePos + strlen($pattern)), '/');
