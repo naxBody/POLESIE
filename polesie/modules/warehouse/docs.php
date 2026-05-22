@@ -46,7 +46,7 @@ if (file_exists($materialsPath)) {
                         'pattern' => $combos['_code_format'],
                         'description_ru' => $combos['_code_format_ru'],
                         'examples' => $combos['examples'] ?? [],
-                        'example_decoding' => $combos['example_decoding'] ?? []
+                        'example_detailed_decoding' => $combos['example_detailed_decoding'] ?? []
                     ];
                 }
             }
@@ -440,17 +440,22 @@ $notificationCount = count($notificationList);
                                 <?php if (!empty($structure['examples'])): ?>
                                 <div class="examples-section">
                                     <h4 class="examples-title">
-                                        💡 Примеры кодов и расшифровка:
+                                        💡 Пример кода и расшифровка:
                                     </h4>
                                     <?php foreach ($structure['examples'] as $example): ?>
                                     <div style="margin-bottom: 12px;">
-                                        <div class="code-example">
+                                        <div class="code-example" style="font-size: 16px; margin-bottom: 12px;">
                                             🔹 <?= e($example) ?>
                                         </div>
-                                        <?php if (isset($structure['example_decoding'][$example])): ?>
-                                        <div class="example-decoding">
-                                            ↳ <?= e($structure['example_decoding'][$example]) ?>
-                                        </div>
+                                        <?php if (!empty($structure['example_detailed_decoding'])): ?>
+                                        <table class="explanation-table" style="width: 100%; margin-left: 12px;">
+                                            <?php foreach ($structure['example_detailed_decoding'] as $item): ?>
+                                            <tr>
+                                                <td><?= e($item['code']) ?></td>
+                                                <td><?= e($item['desc']) ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </table>
                                         <?php endif; ?>
                                     </div>
                                     <?php endforeach; ?>
