@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('../../login.php');
+    redirect(pageUrl('login.php'));
 }
 
 $user = getCurrentUser();
@@ -47,7 +47,7 @@ $notificationCount = count($notificationList);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
     <style>
     .docs-page {
         padding: 24px;
@@ -300,7 +300,7 @@ $notificationCount = count($notificationList);
                                 // Генерируем ссылку на ГОСТ (локальный файл)
                                 $gostNumberFull = preg_replace('/ГОСТ\s*([0-9.]+(?:-[0-9]+)?).*/i', '$1', $gost['gost_number']);
                                 $gostFileName = 'gost_' . str_replace('.', '-', $gostNumberFull) . '.pdf';
-                                $gostLink = '../../assets/gosts/' . $gostFileName;
+                                $gostLink = APP_URL . '/assets/gosts/' . $gostFileName;
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
                                 <div class="standard-card" data-gost="<?= e(strtolower($gost['gost_number'])) ?>" data-title="<?= e(strtolower($gost['title'])) ?>">

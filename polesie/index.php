@@ -10,7 +10,7 @@ session_start();
 
 // Проверка авторизации
 if (!isLoggedIn()) {
-    redirect(APP_URL . '/login.php');
+    redirect(pageUrl('login.php'));
 }
 
 $user = getCurrentUser();
@@ -84,15 +84,6 @@ $notificationList = $notifications->fetchAll();
 $notificationCount = count($notificationList);
 
 $pageTitle = 'Панель управления';
-
-// Функция для получения относительного пути
-function asset($path) {
-    return APP_URL . '/' . ltrim($path, '/');
-}
-
-function pageUrl($path) {
-    return APP_URL . '/' . ltrim($path, '/');
-}
 ?>
 <!DOCTYPE html>
 <html lang="ru">

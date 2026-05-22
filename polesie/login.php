@@ -10,7 +10,7 @@ session_start();
 
 // Если уже авторизован - перенаправляем на главную
 if (isLoggedIn()) {
-    redirect('index.php');
+    redirect(pageUrl('index.php'));
 }
 
 $error = '';
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Введите логин и пароль';
     } elseif (login($username, $password)) {
         logActivity('login_success', 'user', null, null, ['username' => $username]);
-        redirect('index.php');
+        redirect(pageUrl('index.php'));
     } else {
         $error = 'Неверный логин или пароль';
         logActivity('login_failed', 'user', null, null, ['username' => $username]);
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход в систему - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
 <body class="login-page">
     <div class="login-card">
@@ -110,6 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
-    <script src="assets/js/main.js"></script>
+    <script src="<?= asset('assets/js/main.js') ?>"></script>
 </body>
 </html>
