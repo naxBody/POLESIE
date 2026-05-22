@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('../../login.php');
+    redirect(pageUrl('login.php'));
 }
 
 $user = getCurrentUser();
@@ -261,7 +261,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
 <body>
     <div class="app-container">
@@ -1866,7 +1866,7 @@ function generateGostLink(gostString) {
     }
     
     // Путь к локальным файлам ГОСТ
-    const localPath = '../../assets/gosts/gost_' + gostNumber + '.pdf';
+    const localPath = '<?= APP_URL ?>/assets/gosts/gost_' + gostNumber + '.pdf';
     
     // Проверяем существование локального файла через AJAX
     // Если файл существует - открываем локально, иначе - внешний ресурс
@@ -1881,6 +1881,6 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
-<script src="../../assets/js/main.js"></script>
+<script src="<?= asset('assets/js/main.js') ?>"></script>
 </body>
 </html>

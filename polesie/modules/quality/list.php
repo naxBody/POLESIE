@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('../../login.php');
+    redirect(pageUrl('login.php'));
 }
 
 $user = getCurrentUser();
@@ -134,6 +134,6 @@ include '../../includes/topbar.php';
     </div>
 </div>
 
-    <script src="../../assets/js/main.js"></script>
+    <script src="<?= asset('assets/js/main.js') ?>"></script>
 </body>
 </html>

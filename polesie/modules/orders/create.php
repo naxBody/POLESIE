@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('../../login.php');
+    redirect(pageUrl('login.php'));
 }
 
 if (!hasPermission('orders.create')) {
@@ -133,7 +133,7 @@ $pageTitle = 'Новый заказ';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
 <body>
     <div class="app-container">
@@ -300,7 +300,7 @@ $pageTitle = 'Новый заказ';
         </div>
     </div>
     
-    <script src="../../assets/js/main.js"></script>
+    <script src="<?= asset('assets/js/main.js') ?>"></script>
     <script>
         let itemCount = 1;
         

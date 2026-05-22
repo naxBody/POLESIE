@@ -8,4 +8,4 @@ require_once __DIR__ . '/includes/auth.php';
 session_start();
 
 logout();
-redirect('login.php');
+redirect(pageUrl('login.php'));

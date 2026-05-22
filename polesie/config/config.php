@@ -14,7 +14,17 @@ define('DB_CHARSET', 'utf8mb4');
 // Настройки приложения
 define('APP_NAME', 'ОАО "Полесьеэлектромаш" - Система управления производством');
 define('APP_VERSION', '1.0.0');
-define('APP_URL', 'http://localhost/polesie');
+
+// Динамическое определение базового URL приложения
+$scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+// Удаляем возможные дублирующиеся сегменты пути и нормализуем
+$basePath = rtrim($scriptPath, '/');
+if ($basePath === '' || $basePath === '/') {
+    $basePath = '';
+}
+define('APP_BASE_PATH', $basePath);
+define('APP_URL', 'http://' . $_SERVER['HTTP_HOST'] . $basePath);
+
 define('APP_TIMEZONE', 'Europe/Minsk');
 define('APP_LANGUAGE', 'ru');
 
@@ -223,4 +233,18 @@ function getSetting($key, $default = null) {
     }
     
     return $settings[$key] ?? $default;
+}
+
+/**
+ * Получить URL для ассетов (CSS, JS, изображения)
+ */
+function asset($path) {
+    return APP_URL . '/' . ltrim($path, '/');
+}
+
+/**
+ * Получить URL для страниц
+ */
+function pageUrl($path) {
+    return APP_URL . '/' . ltrim($path, '/');
 }
