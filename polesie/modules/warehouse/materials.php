@@ -1026,11 +1026,11 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                 $subcategoryName = $material['subcategory']['name_ru'] ?? '';
                 ?>
                 <div class="material-card" 
-                     data-name="<?= e(strtolower($material['name_full'])) ?>"
-                     data-code="<?= e(strtolower($material['code_internal'])) ?>"
-                     data-category="<?= e(strtolower($categoryName)) ?>"
-                     data-subcategory="<?= e(strtolower($subcategoryName)) ?>"
-                     data-gost="<?= e(strtolower($gostStandard)) ?>"
+                     data-name="<?= e($material['name_full']) ?>"
+                     data-code="<?= e($material['code_internal']) ?>"
+                     data-category="<?= e($categoryName) ?>"
+                     data-subcategory="<?= e($subcategoryName) ?>"
+                     data-gost="<?= e($gostStandard) ?>"
                      data-specs='<?= htmlspecialchars(json_encode($specs, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'
                      onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)">
                     <div class="material-card-header">
