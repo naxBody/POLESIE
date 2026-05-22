@@ -27,6 +27,7 @@ if (file_exists($docsPath)) {
 
 $abbreviations = $docsData['abbreviation_decodings'] ?? [];
 $gostStandards = $docsData['gost_standards'] ?? [];
+$allAbbreviations = $materialsData['all_abbreviations'] ?? [];
 
 // Загружаем полную структуру кодов из list_materials.json
 $materialsPath = BASE_PATH . '/../list_materials.json';
@@ -418,6 +419,23 @@ $notificationCount = count($notificationList);
                             <input type="text" class="search-input" placeholder="🔍 Поиск по структуре кода..." onkeyup="filterStructures(this.value)">
                         </div>
                         
+                        <!-- Справочник всех аббревиатур -->
+                        <?php if (!empty($allAbbreviations)): ?>
+                        <div style="margin-bottom: 32px; background: var(--bg-primary); border-radius: var(--border-radius-lg); padding: 20px; box-shadow: var(--shadow);">
+                            <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">
+                                📖 Полный справочник аббревиатур
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                                <?php foreach ($allAbbreviations as $abbrCode => $abbrInfo): ?>
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <span style="font-family: 'Courier New', monospace; font-weight: 700; color: var(--primary-color); font-size: 14px; min-width: 70px;"><?= e($abbrCode) ?></span>
+                                    <span style="font-size: 13px; color: var(--text-secondary);"><?= e($abbrInfo['desc']) ?></span>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
                         <div id="structuresGrid">
                         <?php foreach ($codeStructures as $id => $structure): ?>
                         <div class="code-structure-section structure-item" 
@@ -433,15 +451,9 @@ $notificationCount = count($notificationList);
                                 <div class="code-pattern">
                                     📐 Шаблон: <?= e($structure['pattern']) ?>
                                 </div>
-                                <div class="code-description" style="margin-bottom: 16px;">
-                                    <?= e($structure['description_ru']) ?>
-                                </div>
                                 
                                 <?php if (!empty($structure['examples'])): ?>
-                                <div class="examples-section">
-                                    <h4 class="examples-title">
-                                        💡 Пример кода и расшифровка:
-                                    </h4>
+                                <div class="examples-section" style="margin-top: 16px; border-top: none; padding-top: 0;">
                                     <?php foreach ($structure['examples'] as $example): ?>
                                     <div style="margin-bottom: 12px;">
                                         <div class="code-example" style="font-size: 16px; margin-bottom: 12px;">
