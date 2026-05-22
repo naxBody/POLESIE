@@ -3,7 +3,7 @@
     <div class="topbar-left">
         <h1 class="topbar-title"><?= e($pageTitle) ?></h1>
         <div class="topbar-breadcrumb">
-            <a href="../index.php">Главная</a>
+            <a href="/polesie/index.php">Главная</a>
             <span class="topbar-breadcrumb-separator">/</span>
             <span><?= e($pageTitle) ?></span>
         </div>

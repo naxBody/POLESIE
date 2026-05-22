@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
 if (!isLoggedIn()) {
-    redirect('../../login.php');
+    redirect('/polesie/login.php');
 }
 
 $user = getCurrentUser();
@@ -17,7 +17,7 @@ $pdo = getDbConnection();
 $pageTitle = 'Материалы';
 
 // Загрузка данных из JSON
-$jsonPath = BASE_PATH . '/../list_materials.json';
+$jsonPath = dirname(BASE_PATH) . '/list_materials.json';
 $materialsData = [];
 $categories = [];
 $allMaterials = [];
@@ -266,12 +266,12 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
 <body>
     <div class="app-container">
         <!-- Боковая панель -->
-        <?php include '../../includes/sidebar.php'; ?>
+        <?php include '/workspace/polesie/includes/sidebar.php'; ?>
         
         <!-- Основной контент -->
         <div class="main-content">
             <!-- Верхняя панель -->
-            <?php include '../../includes/topbar.php'; ?>
+            <?php include '/workspace/polesie/includes/topbar.php'; ?>
             
             <!-- Контентная область -->
             <div class="content-area">

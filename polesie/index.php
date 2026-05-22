@@ -10,7 +10,7 @@ session_start();
 
 // Проверка авторизации
 if (!isLoggedIn()) {
-    redirect('login.php');
+    redirect('/polesie/login.php');
 }
 
 $user = getCurrentUser();
@@ -92,7 +92,7 @@ $pageTitle = 'Панель управления';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/polesie/assets/css/style.css">
 </head>
 <body>
     <div class="app-container">
@@ -159,7 +159,7 @@ $pageTitle = 'Панель управления';
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Последние заказы</h3>
-                            <a href="modules/orders/list.php" class="btn btn-sm btn-secondary">Все заказы</a>
+                            <a href="/polesie/modules/orders/list.php" class="btn btn-sm btn-secondary">Все заказы</a>
                         </div>
                         <div class="card-body" style="padding: 0;">
                             <div class="table-responsive">
@@ -195,7 +195,7 @@ $pageTitle = 'Панель управления';
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Производственные задания</h3>
-                            <a href="modules/production/list.php" class="btn btn-sm btn-secondary">Все задания</a>
+                            <a href="/polesie/modules/production/list.php" class="btn btn-sm btn-secondary">Все задания</a>
                         </div>
                         <div class="card-body" style="padding: 0;">
                             <div class="table-responsive">
@@ -231,6 +231,6 @@ $pageTitle = 'Панель управления';
         </div>
     </div>
     
-    <script src="assets/js/main.js"></script>
+    <script src="/polesie/assets/js/main.js"></script>
 </body>
 </html>
