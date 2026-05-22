@@ -104,35 +104,8 @@ if ($filterCategory !== '') {
     });
 }
 
-// Фильтр по поиску
-$filterSearch = $_GET['search'] ?? '';
-if ($filterSearch !== '') {
-    $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterSearch) {
-        // Поиск по названию (полному и краткому)
-        $searchInName = stripos($m['name_full'], $filterSearch) !== false || 
-                        stripos($m['name_short'], $filterSearch) !== false;
-        
-        // Поиск по внутреннему коду
-        $searchInCode = stripos($m['code_internal'], $filterSearch) !== false;
-        
-        // Поиск по категории (родительской и подкатегории)
-        $searchInCategory = false;
-        if (!empty($m['parent_category']['name_ru'])) {
-            $searchInCategory = stripos($m['parent_category']['name_ru'], $filterSearch) !== false;
-        }
-        if (!$searchInCategory && !empty($m['subcategory']['name_ru'])) {
-            $searchInCategory = stripos($m['subcategory']['name_ru'], $filterSearch) !== false;
-        }
-        
-        // Поиск по описанию ГОСТ/стандарта
-        $searchInGost = false;
-        if (!empty($m['specifications']['standard_doc'])) {
-            $searchInGost = stripos($m['specifications']['standard_doc'], $filterSearch) !== false;
-        }
-        
-        return $searchInName || $searchInCode || $searchInCategory || $searchInGost;
-    });
-}
+// Поиск теперь работает только на клиенте (как на странице ГОСТы) - серверная фильтрация удалена
+$filterSearch = '';
 
 // Фильтр по марке материала
 $filterGrade = $_GET['grade'] ?? '';
@@ -846,7 +819,7 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                            class="filter-input" 
                            id="dynamicSearch"
                            placeholder="Введите название категории или код материала..."
-                           value="<?= e($filterSearch) ?>"
+                           value=""
                            oninput="debouncedSearch()">
                     <small style="color: var(--text-muted); margin-top: 4px; font-size: 11px;">
                         Поиск по названию категории, подкатегории, коду материала или ГОСТ
@@ -968,15 +941,9 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
                 <button type="submit" class="btn btn-primary">Применить фильтры</button>
                 <a href="materials.php" class="btn btn-outline">Сбросить</a>
                 
-                <?php if ($filterSearch || $filterCategory || $filterGrade || $filterStandard || $filterForm || $filterCritical || $filterCert || $filterDiameter || $filterLength || $filterStrengthClass || $filterCoating): ?>
+                <?php if ($filterCategory || $filterGrade || $filterStandard || $filterForm || $filterCritical || $filterCert || $filterDiameter || $filterLength || $filterStrengthClass || $filterCoating): ?>
                     <div class="active-filters">
                         <span style="font-size: 13px; color: var(--text-secondary); align-self: center;">Активные фильтры:</span>
-                        <?php if ($filterSearch): ?>
-                            <span class="filter-chip">
-                                Поиск: <?= e($filterSearch) ?>
-                                <a href="#" onclick="clearSearchFilter(); return false;" class="filter-chip-remove">✕</a>
-                            </span>
-                        <?php endif; ?>
                         <?php if ($filterCategory): ?>
                             <?php 
                             $catName = '';
