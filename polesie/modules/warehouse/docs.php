@@ -380,7 +380,10 @@ $notificationCount = count($notificationList);
                                 $gostLink = APP_URL . '/assets/gosts/' . $gostFileName;
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
-                                <div class="standard-card" data-gost="<?= e(strtolower($gost['gost_number'])) ?>" data-title="<?= e(strtolower($gost['title'])) ?>">
+                                <div class="standard-card" 
+                                     data-gost="<?= e(strtolower($gost['gost_number'])) ?>" 
+                                     data-title="<?= e(strtolower($gost['title'])) ?>"
+                                     data-category="<?= e(strtolower($gost['category'])) ?>">
                                     <div class="standard-header">
                                         <span class="standard-number"><?= e($gost['gost_number']) ?></span>
                                         <span class="standard-status status-active\"><?= e($gost['status']) ?></span>
@@ -496,10 +499,12 @@ $notificationCount = count($notificationList);
     
     function filterStandards(query) {
         const cards = document.querySelectorAll('#standardsGrid .standard-card');
+        query = query.toLowerCase();
         cards.forEach(card => {
             const gost = card.dataset.gost;
             const title = card.dataset.title;
-            if (gost.includes(query.toLowerCase()) || title.includes(query.toLowerCase())) {
+            const category = card.dataset.category || '';
+            if (gost.includes(query) || title.includes(query) || category.includes(query)) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
