@@ -33,6 +33,101 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $action = $_GET['action'] ?? 'upload';
 $isEdit = ($action === 'edit');
 
+// Обработка добавления категории
+if ($action === 'add_category') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $category = trim($input['category'] ?? '');
+    
+    if (empty($category)) {
+        echo json_encode(['success' => false, 'message' => 'Категория не указана']);
+        exit;
+    }
+    
+    // Загружаем существующие данные
+    $docsPath = BASE_PATH . '/list_materials_docs.json';
+    $docsData = [];
+    
+    if (file_exists($docsPath)) {
+        $jsonData = file_get_contents($docsPath);
+        $docsData = json_decode($jsonData, true);
+    }
+    
+    // Инициализация структуры если не существует
+    if (!isset($docsData['gost_standards'])) {
+        $docsData['gost_standards'] = [];
+    }
+    
+    // Проверяем, есть ли уже такая категория
+    $categoryExists = false;
+    foreach ($docsData['gost_standards'] as &$gost) {
+        if (isset($gost['category']) && $gost['category'] === $category) {
+            $categoryExists = true;
+            break;
+        }
+    }
+    
+    if (!$categoryExists) {
+        // Добавляем новый ГОСТ с этой категорией для сохранения категории в списке
+        $docsData['gost_standards'][] = [
+            'gost_number' => '_CATEGORY_' . $category,
+            'title' => '_RESERVED_CATEGORY_',
+            'category' => $category,
+            'status' => 'Действующий',
+            'file_name' => '',
+            'uploaded_at' => date('Y-m-d H:i:s'),
+            'uploaded_by' => $user['id']
+        ];
+    }
+    
+    // Сохранение обновленных данных
+    if (file_put_contents($docsPath, json_encode($docsData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+        echo json_encode(['success' => true, 'message' => 'Категория сохранена']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Ошибка сохранения данных']);
+    }
+    exit;
+}
+
+// Обработка удаления категории
+if ($action === 'delete_category') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $category = trim($input['category'] ?? '');
+    
+    if (empty($category)) {
+        echo json_encode(['success' => false, 'message' => 'Категория не указана']);
+        exit;
+    }
+    
+    // Загружаем существующие данные
+    $docsPath = BASE_PATH . '/list_materials_docs.json';
+    $docsData = [];
+    
+    if (file_exists($docsPath)) {
+        $jsonData = file_get_contents($docsPath);
+        $docsData = json_decode($jsonData, true);
+    }
+    
+    if (!isset($docsData['gost_standards'])) {
+        echo json_encode(['success' => false, 'message' => 'Список ГОСТов пуст']);
+        exit;
+    }
+    
+    // Удаляем все ГОСТы с этой категорией (включая зарезервированные)
+    $filteredStandards = array_filter($docsData['gost_standards'], function($gost) use ($category) {
+        return !isset($gost['category']) || $gost['category'] !== $category;
+    });
+    
+    $docsData['gost_standards'] = array_values($filteredStandards);
+    
+    // Сохранение обновленных данных
+    if (file_put_contents($docsPath, json_encode($docsData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+        echo json_encode(['success' => true, 'message' => 'Категория удалена']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Ошибка сохранения данных']);
+    }
+    exit;
+}
+
 // Для редактирования файл не обязателен
 $fileRequired = !$isEdit;
 $hasFile = isset($_FILES['gost_file']) && $_FILES['gost_file']['error'] !== UPLOAD_ERR_NO_FILE;
