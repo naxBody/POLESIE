@@ -145,11 +145,20 @@ $notificationCount = count($notificationList);
         border-left: 4px solid var(--primary-color);
         height: 100%;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
     }
         .standard-card-link:hover .standard-card {
                 transform: translateY(-2px);
                 box-shadow: var(--shadow-md);
             }
+    
+    .standard-card-footer {
+        margin-top: auto;
+        padding-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+    }
     
     .standard-header {
         display: flex;
@@ -629,16 +638,18 @@ $notificationCount = count($notificationList);
                                         </div>
                                         <div class="standard-title"><?= e($gost['title']) ?></div>
                                         <div class="standard-category">📁 <?= e($gost['category']) ?></div>
+                                        <div class="standard-card-footer">
+                                            <button class="btn-icon edit-gost-btn" 
+                                                    onclick="openEditModal(<?= $index ?>); event.stopPropagation();" 
+                                                    title="Редактировать"
+                                                    style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                                    onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
+                                                    onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
+                                                ✏️
+                                            </button>
+                                        </div>
                                     </div>
                                 </a>
-                                <button class="btn-icon edit-gost-btn" 
-                                        onclick="openEditModal(<?= $index ?>); event.stopPropagation();" 
-                                        title="Редактировать"
-                                        style="align-self: flex-end; margin: 8px 0 0 auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
-                                        onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
-                                        onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
-                                    ✏️
-                                </button>
                             </div>
                             <?php endforeach; ?>
                         </div>
