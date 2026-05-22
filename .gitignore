@@ -1,6 +1,1 @@
-```php
-<?php
-// This is a sample PHP file to demonstrate syntax highlighting
-echo "Hello, World!";
-?>
-```
+Nothing should be ignored based on the provided file changes. The only modified file is 'polesie/modules/warehouse/docs.php', which appears to be a source code file and should not be added to .gitignore.

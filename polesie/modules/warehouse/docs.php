@@ -27,7 +27,30 @@ if (file_exists($docsPath)) {
 
 $abbreviations = $docsData['abbreviation_decodings'] ?? [];
 $gostStandards = $docsData['gost_standards'] ?? [];
-$codeStructures = $docsData['material_codes_structure'] ?? [];
+
+// Загружаем полную структуру кодов из list_materials.json
+$materialsPath = BASE_PATH . '/../list_materials.json';
+$codeStructures = [];
+if (file_exists($materialsPath)) {
+    $materialsData = json_decode(file_get_contents($materialsPath), true);
+    $categories = $materialsData['categories'] ?? [];
+    
+    foreach ($categories as $category) {
+        if (isset($category['subcategories'])) {
+            foreach ($category['subcategories'] as $subcategory) {
+                $combos = $subcategory['available_combinations'] ?? [];
+                if (isset($combos['_code_format']) && isset($combos['_code_format_ru'])) {
+                    $codeStructures[$subcategory['id']] = [
+                        'category_ru' => $category['name_ru'],
+                        'subcategory_ru' => $subcategory['name_ru'],
+                        'pattern' => $combos['_code_format'],
+                        'description_ru' => $combos['_code_format_ru']
+                    ];
+                }
+            }
+        }
+    }
+}
 
 // Получение количества уведомлений
 $notifications = $pdo->prepare("
@@ -202,12 +225,27 @@ $notificationCount = count($notificationList);
         margin-bottom: 24px;
     }
     
+    .code-structure-section h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
     .code-structure-card {
         background: var(--bg-primary);
         border-radius: var(--border-radius-lg);
         padding: 20px;
         box-shadow: var(--shadow);
         margin-bottom: 16px;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    
+    .code-structure-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
     }
     
     .code-pattern {
@@ -216,8 +254,14 @@ $notificationCount = count($notificationList);
         background: var(--gray-100);
         padding: 12px;
         border-radius: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .code-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
     }
     
     .code-example {
@@ -255,18 +299,27 @@ $notificationCount = count($notificationList);
     
     .search-input {
         width: 100%;
-        max-width: 400px;
+        max-width: 500px;
         padding: 12px 16px;
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius-lg);
         font-size: 14px;
         background: var(--bg-primary);
         color: var(--text-primary);
+        transition: all var(--transition-fast);
     }
     
     .search-input:focus {
         outline: none;
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .no-results-message {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+        font-size: 14px;
     }
     </style>
 </head>
@@ -338,27 +391,31 @@ $notificationCount = count($notificationList);
                     
                     <!-- Секция: Структура кодов -->
                     <div id="structures-section" class="doc-section">
-                        <?php foreach ($codeStructures as $type => $structure): ?>
-                        <div class="code-structure-section">
-                            <h3 style="margin-bottom: 16px;"><?= e(ucfirst(str_replace('_', ' ', $type))) ?></h3>
+                        <div class="search-box">
+                            <input type="text" class="search-input" placeholder="🔍 Поиск по структуре кода..." onkeyup="filterStructures(this.value)">
+                        </div>
+                        
+                        <div id="structuresGrid">
+                        <?php foreach ($codeStructures as $id => $structure): ?>
+                        <div class="code-structure-section structure-item" 
+                             data-category="<?= e(strtolower($structure['category_ru'])) ?>" 
+                             data-subcategory="<?= e(strtolower($structure['subcategory_ru'])) ?>"
+                             data-pattern="<?= e(strtolower($structure['pattern'])) ?>"
+                             data-description="<?= e(strtolower($structure['description_ru'])) ?>">
+                            <h3 style="margin-bottom: 16px;">
+                                <?= e($structure['category_ru']) ?> → <?= e($structure['subcategory_ru']) ?>
+                            </h3>
                             <div class="code-structure-card">
                                 <div class="code-pattern">
                                     📐 Шаблон: <?= e($structure['pattern']) ?>
                                 </div>
-                                <div class="code-example">
-                                    💡 Пример: <?= e($structure['example']) ?>
+                                <div class="code-description">
+                                    <?= e($structure['description_ru']) ?>
                                 </div>
-                                <table class="explanation-table">
-                                    <?php foreach ($structure['explanation'] as $part => $desc): ?>
-                                    <tr>
-                                        <td><?= e($part) ?></td>
-                                        <td><?= e($desc) ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </table>
                             </div>
                         </div>
                         <?php endforeach; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -398,6 +455,24 @@ $notificationCount = count($notificationList);
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
+            }
+        });
+    }
+    
+    function filterStructures(query) {
+        const items = document.querySelectorAll('#structuresGrid .structure-item');
+        query = query.toLowerCase();
+        items.forEach(item => {
+            const category = item.dataset.category;
+            const subcategory = item.dataset.subcategory;
+            const pattern = item.dataset.pattern;
+            const description = item.dataset.description;
+            
+            if (category.includes(query) || subcategory.includes(query) || 
+                pattern.includes(query) || description.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
             }
         });
     }
