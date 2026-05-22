@@ -44,7 +44,7 @@ if (file_exists($materialsPath)) {
                     $codeStructures[$subcategory['id']] = [
                         'category_ru' => $category['name_ru'],
                         'subcategory_ru' => $subcategory['name_ru'],
-                        'pattern' => $combos['_code_format'],
+                        'pattern' => $combos['_code_format_ru'],
                         'description_ru' => $combos['_code_format_ru'],
                         'examples' => $combos['examples'] ?? [],
                         'example_detailed_decoding' => $combos['example_detailed_decoding'] ?? []
