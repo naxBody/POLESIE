@@ -834,7 +834,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
             </div>
         </div>
         
-        <form method="GET" id="filtersForm">
+        <form method="GET" id="filtersForm" onsubmit="return false;">
             <div class="filters-grid">
                 <div class="filter-group" style="grid-column: 1 / -1;">
                     <label class="filter-label">🔍 Динамический поиск</label>
