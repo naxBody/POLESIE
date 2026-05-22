@@ -8,6 +8,9 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../includes/auth.php';
 session_start();
 
+// Устанавливаем кодировку для корректной работы с многобайтовыми строками (кириллица)
+mb_internal_encoding('UTF-8');
+
 if (!isLoggedIn()) {
     redirect(pageUrl('login.php'));
 }
@@ -381,9 +384,9 @@ $notificationCount = count($notificationList);
                             ?>
                             <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit;">
                                 <div class="standard-card" 
-                                     data-gost="<?= e(strtolower($gost['gost_number'])) ?>" 
-                                     data-title="<?= e(strtolower($gost['title'])) ?>"
-                                     data-category="<?= e(strtolower($gost['category'])) ?>">
+                                     data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
+                                     data-title="<?= e(mb_strtolower($gost['title'], 'UTF-8')) ?>"
+                                     data-category="<?= e(mb_strtolower($gost['category'], 'UTF-8')) ?>">
                                     <div class="standard-header">
                                         <span class="standard-number"><?= e($gost['gost_number']) ?></span>
                                         <span class="standard-status status-active\"><?= e($gost['status']) ?></span>
@@ -404,7 +407,7 @@ $notificationCount = count($notificationList);
                         
                         <div class="abbreviations-grid" id="abbreviationsGrid">
                             <?php foreach ($abbreviations as $code => $info): ?>
-                            <div class="abbreviation-card" data-code="<?= e(strtolower($code)) ?>" data-name="<?= e(strtolower($info['full_name'])) ?>">
+                            <div class="abbreviation-card" data-code="<?= e(mb_strtolower($code, 'UTF-8')) ?>" data-name="<?= e(mb_strtolower($info['full_name'], 'UTF-8')) ?>">
                                 <div class="abbr-header">
                                     <span class="abbr-code"><?= e($code) ?></span>
                                     <span class="abbr-full-name"><?= e($info['full_name']) ?></span>
@@ -442,11 +445,11 @@ $notificationCount = count($notificationList);
                         <div id="structuresGrid">
                         <?php foreach ($codeStructures as $id => $structure): ?>
                         <div class="code-structure-section structure-item" 
-                             data-category="<?= e(strtolower($structure['category_ru'])) ?>" 
-                             data-subcategory="<?= e(strtolower($structure['subcategory_ru'])) ?>"
-                             data-pattern="<?= e(strtolower($structure['pattern'])) ?>"
-                             data-description="<?= e(strtolower($structure['description_ru'])) ?>"
-                             data-examples="<?= e(strtolower(implode(' ', $structure['examples'] ?? []))) ?>">
+                             data-category="<?= e(mb_strtolower($structure['category_ru'], 'UTF-8')) ?>" 
+                             data-subcategory="<?= e(mb_strtolower($structure['subcategory_ru'], 'UTF-8')) ?>"
+                             data-pattern="<?= e(mb_strtolower($structure['pattern'], 'UTF-8')) ?>"
+                             data-description="<?= e(mb_strtolower($structure['description_ru'], 'UTF-8')) ?>"
+                             data-examples="<?= e(mb_strtolower(implode(' ', $structure['examples'] ?? []), 'UTF-8')) ?>">
                             <h3 style="margin-bottom: 16px;">
                                 <?= e($structure['category_ru']) ?> → <?= e($structure['subcategory_ru']) ?>
                             </h3>
@@ -501,8 +504,8 @@ $notificationCount = count($notificationList);
         const cards = document.querySelectorAll('#standardsGrid .standard-card');
         query = query.toLowerCase();
         cards.forEach(card => {
-            const gost = card.dataset.gost;
-            const title = card.dataset.title;
+            const gost = card.dataset.gost || '';
+            const title = card.dataset.title || '';
             const category = card.dataset.category || '';
             if (gost.includes(query) || title.includes(query) || category.includes(query)) {
                 card.style.display = 'block';
