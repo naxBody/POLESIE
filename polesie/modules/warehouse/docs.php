@@ -125,12 +125,26 @@ $notificationCount = count($notificationList);
         gap: 16px;
     }
     
+    .standard-card-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .standard-card-link {
+        display: block;
+        flex-grow: 1;
+    }
+    
     .standard-card {
         background: var(--bg-primary);
         border-radius: var(--border-radius-lg);
         padding: 20px;
         box-shadow: var(--shadow);
         border-left: 4px solid var(--primary-color);
+        height: 100%;
+        box-sizing: border-box;
     }
         .standard-card-link:hover .standard-card {
                 transform: translateY(-2px);
@@ -603,8 +617,8 @@ $notificationCount = count($notificationList);
                                 }
                                 $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
-                            <div class="standard-card-wrapper" style="position: relative; display: flex; flex-direction: column;">
-                                <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit; flex-grow: 1;">
+                            <div class="standard-card-wrapper">
+                                <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit; display: block;">
                                     <div class="standard-card" 
                                          data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
                                          data-title="<?= e(mb_strtolower($gost['title'], 'UTF-8')) ?>"
@@ -620,7 +634,7 @@ $notificationCount = count($notificationList);
                                 <button class="btn-icon edit-gost-btn" 
                                         onclick="openEditModal(<?= $index ?>); event.stopPropagation();" 
                                         title="Редактировать"
-                                        style="align-self: flex-end; margin: 12px 0 0 auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
+                                        style="align-self: flex-end; margin: 8px 0 0 auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
                                         onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
                                         onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
                                     ✏️
