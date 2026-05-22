@@ -340,6 +340,11 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
     transition: border-color var(--transition-fast);
 }
 
+.filter-select:hover,
+.filter-input:hover {
+    border-color: var(--primary-color);
+}
+
 .filter-select:focus,
 .filter-input:focus {
     outline: none;
@@ -810,7 +815,7 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
             </div>
         </div>
         
-        <form method="GET" id="filtersForm" onsubmit="return false;">
+        <form method="GET" id="filtersForm" onsubmit="return false;" autocomplete="off">
             <div class="filters-grid">
                 <div class="filter-group" style="grid-column: 1 / -1;">
                     <label class="filter-label">🔍 Динамический поиск</label>
@@ -938,7 +943,7 @@ $allMaterialsJson = json_encode($allMaterials, JSON_UNESCAPED_UNICODE);
             </div>
             
             <div class="filter-actions">
-                <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                <button type="button" class="btn btn-primary" onclick="applyFilters()">Применить фильтры</button>
                 <a href="materials.php" class="btn btn-outline">Сбросить</a>
                 
                 <?php if ($filterCategory || $filterGrade || $filterStandard || $filterForm || $filterCritical || $filterCert || $filterDiameter || $filterLength || $filterStrengthClass || $filterCoating): ?>
@@ -1356,13 +1361,14 @@ function updatePropertyFiltersWithoutSubmit() {
 
 // Функция обновления фильтров свойств при выборе категории (для совместимости)
 function updatePropertyFilters() {
-    updatePropertyFiltersWithoutSubmit();
-}
     // Удаляем empty state если есть
-    const emptyState = document.querySelector('.empty-state');
-    if (emptyState) {
-        emptyState.remove();
+    const existingEmptyState = document.querySelector('.empty-state');
+    if (existingEmptyState) {
+        existingEmptyState.remove();
     }
+    
+    const categorySelect = document.getElementById('categorySelect');
+    const selectedCategory = categorySelect?.value || '';
     
     // Если категория не выбрана, выходим
     if (!selectedCategory) {
@@ -1652,6 +1658,12 @@ function clearSearchFilter() {
 // Фильтрация по свойствам (диаметр, длина, класс прочности, покрытие) - мгновенно на клиенте
 function filterByProperty(property, value) {
     // Просто вызываем debouncedSearch, который учитывает все фильтры
+    debouncedSearch();
+}
+
+// Применение фильтров - кнопка "Применить фильтры"
+function applyFilters() {
+    // Просто вызываем debouncedSearch для применения всех текущих фильтров
     debouncedSearch();
 }
 
