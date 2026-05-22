@@ -108,9 +108,29 @@ if ($filterCategory !== '') {
 $filterSearch = $_GET['search'] ?? '';
 if ($filterSearch !== '') {
     $filteredMaterials = array_filter($filteredMaterials, function($m) use ($filterSearch) {
-        return stripos($m['name_full'], $filterSearch) !== false || 
-               stripos($m['name_short'], $filterSearch) !== false ||
-               stripos($m['code_internal'], $filterSearch) !== false;
+        // Поиск по названию (полному и краткому)
+        $searchInName = stripos($m['name_full'], $filterSearch) !== false || 
+                        stripos($m['name_short'], $filterSearch) !== false;
+        
+        // Поиск по внутреннему коду
+        $searchInCode = stripos($m['code_internal'], $filterSearch) !== false;
+        
+        // Поиск по категории (родительской и подкатегории)
+        $searchInCategory = false;
+        if (!empty($m['parent_category']['name_ru'])) {
+            $searchInCategory = stripos($m['parent_category']['name_ru'], $filterSearch) !== false;
+        }
+        if (!$searchInCategory && !empty($m['subcategory']['name_ru'])) {
+            $searchInCategory = stripos($m['subcategory']['name_ru'], $filterSearch) !== false;
+        }
+        
+        // Поиск по описанию ГОСТ/стандарта
+        $searchInGost = false;
+        if (!empty($m['specifications']['standard_doc'])) {
+            $searchInGost = stripos($m['specifications']['standard_doc'], $filterSearch) !== false;
+        }
+        
+        return $searchInName || $searchInCode || $searchInCategory || $searchInGost;
     });
 }
 
