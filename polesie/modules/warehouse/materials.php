@@ -1036,7 +1036,7 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
     
     <!-- Статистика и управление видом -->
     <div class="stats-bar">
-        <div class="stats-count">
+        <div class="stats-count" id="materialsCount">
             Найдено материалов: <strong><?= count($filteredMaterials) ?></strong> из <strong><?= count($allMaterials) ?></strong>
         </div>
         <div class="view-controls">
@@ -1056,7 +1056,19 @@ $availableCombinationsJson = json_encode($availableCombinations, JSON_UNESCAPED_
         <!-- Вид: Карточки -->
         <div class="materials-grid" id="materialsGrid">
             <?php foreach ($filteredMaterials as $material): ?>
-                <div class="material-card" onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)">
+                <?php 
+                $specs = $material['specifications'] ?? [];
+                $gostStandard = $specs['standard_doc'] ?? '';
+                $categoryName = $material['parent_category']['name_ru'] ?? '';
+                $subcategoryName = $material['subcategory']['name_ru'] ?? '';
+                ?>
+                <div class="material-card" 
+                     data-name="<?= e(strtolower($material['name_full'])) ?>"
+                     data-code="<?= e(strtolower($material['code_internal'])) ?>"
+                     data-category="<?= e(strtolower($categoryName)) ?>"
+                     data-subcategory="<?= e(strtolower($subcategoryName)) ?>"
+                     data-gost="<?= e(strtolower($gostStandard)) ?>"
+                     onclick="openMaterialModal(<?= htmlspecialchars(json_encode($material), ENT_QUOTES, 'UTF-8') ?>)">
                     <div class="material-card-header">
                         <div>
                             <div class="material-category">
@@ -1292,6 +1304,26 @@ function updatePropertyFilters() {
         filter.style.display = 'none';
     });
     
+    // При изменении категории также сбрасываем поиск и показываем все карточки
+    const searchInput = document.getElementById('dynamicSearch');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    const cards = document.querySelectorAll('#materialsGrid .material-card');
+    cards.forEach(card => {
+        card.style.display = 'block';
+    });
+    // Обновляем счетчик
+    const countEl = document.querySelector('.stats-count strong');
+    if (countEl) {
+        countEl.textContent = cards.length;
+    }
+    // Удаляем empty state если есть
+    const emptyState = document.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.remove();
+    }
+    
     // Если категория не выбрана, выходим
     if (!selectedCategory) {
         return;
@@ -1432,13 +1464,63 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePropertyFilters();
 });
 
-// Функция динамического поиска с задержкой (debounce)
+// Функция динамического поиска с задержкой (debounce) - мгновенная фильтрация на клиенте
 let searchTimeout;
 function debouncedSearch() {
+    const query = document.getElementById('dynamicSearch').value.toLowerCase();
+    
+    // Сначала показываем все карточки, потом скрываем не подходящие
+    const cards = document.querySelectorAll('#materialsGrid .material-card');
+    let visibleCount = 0;
+    
+    cards.forEach(card => {
+        const name = card.dataset.name || '';
+        const code = card.dataset.code || '';
+        const category = card.dataset.category || '';
+        const subcategory = card.dataset.subcategory || '';
+        const gost = card.dataset.gost || '';
+        
+        // Мгновенная проверка: ищем в названии, коде, категории или ГОСТе
+        if (name.includes(query) || code.includes(query) || 
+            category.includes(query) || subcategory.includes(query) || gost.includes(query)) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Обновляем счетчик материалов
+    const countEl = document.querySelector('.stats-count strong');
+    if (countEl) {
+        countEl.textContent = visibleCount;
+    }
+    
+    // Показываем сообщение если ничего не найдено
+    const emptyState = document.querySelector('.empty-state');
+    if (visibleCount === 0 && cards.length > 0) {
+        if (!emptyState) {
+            const grid = document.getElementById('materialsGrid');
+            const emptyHtml = `
+                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Ничего не найдено</h3>
+                    <p>Попробуйте изменить поисковый запрос</p>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', emptyHtml);
+        }
+    } else if (emptyState && visibleCount > 0) {
+        emptyState.remove();
+    }
+    
+    // Очищаем таймер и НЕ отправляем форму сразу - фильтрация происходит на клиенте
     clearTimeout(searchTimeout);
+    
+    // Отправляем форму только если пользователь закончил ввод (для обновления URL и серверной фильтрации)
     searchTimeout = setTimeout(function() {
         document.getElementById('filtersForm').submit();
-    }, 500); // Задержка 500мс перед отправкой формы
+    }, 800);
 }
 
 function setView(view) {
