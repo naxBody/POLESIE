@@ -829,14 +829,23 @@ $notificationCount = count($notificationList);
     
     // Модальное окно загрузки ГОСТ
     function openUploadModal() {
-        document.getElementById('uploadModal').style.display = 'flex';
+        const modal = document.getElementById('uploadModal');
+        modal.style.display = 'flex';
+        // Небольшая задержка чтобы браузер применил display перед добавлением класса для анимации
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
     }
     
     function closeUploadModal() {
-        document.getElementById('uploadModal').style.display = 'none';
-        document.getElementById('uploadForm').reset();
-        clearUploadStatus();
-        clearFileDisplay();
+        const modal = document.getElementById('uploadModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('uploadForm').reset();
+            clearUploadStatus();
+            clearFileDisplay();
+        }, 300); // Ждем завершения анимации
     }
     
     function clearUploadStatus() {
@@ -1001,7 +1010,7 @@ $notificationCount = count($notificationList);
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             const modal = document.getElementById('uploadModal');
-            if (modal && modal.style.display === 'flex') {
+            if (modal && (modal.style.display === 'flex' || modal.classList.contains('active'))) {
                 closeUploadModal();
             }
         }
