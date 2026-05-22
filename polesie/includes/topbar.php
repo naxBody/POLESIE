@@ -3,7 +3,7 @@
     <div class="topbar-left">
         <h1 class="topbar-title"><?= e($pageTitle) ?></h1>
         <div class="topbar-breadcrumb">
-            <a href="/polesie/index.php">Главная</a>
+            <a href="<?= pageUrl('index.php') ?>">Главная</a>
             <span class="topbar-breadcrumb-separator">/</span>
             <span><?= e($pageTitle) ?></span>
         </div>
@@ -44,14 +44,14 @@
                     <div style="font-weight: 600;"><?= e($user['full_name']) ?></div>
                     <div style="font-size: 12px; color: var(--text-secondary);"><?= e($user['role_name']) ?></div>
                 </div>
-                <a href="settings/profile.php" style="display: block; padding: 10px 16px; color: var(--text-primary); font-size: 13px;">
+                <a href="<?= pageUrl('settings/profile.php') ?>" style="display: block; padding: 10px 16px; color: var(--text-primary); font-size: 13px;">
                     👤 Профиль
                 </a>
-                <a href="settings/password.php" style="display: block; padding: 10px 16px; color: var(--text-primary); font-size: 13px;">
+                <a href="<?= pageUrl('settings/password.php') ?>" style="display: block; padding: 10px 16px; color: var(--text-primary); font-size: 13px;">
                     🔒 Смена пароля
                 </a>
                 <div style="border-top: 1px solid var(--border-color);"></div>
-                <a href="logout.php" style="display: block; padding: 10px 16px; color: var(--danger-color); font-size: 13px;" onclick="return confirm('Вы уверены, что хотите выйти?')">
+                <a href="<?= pageUrl('logout.php') ?>" style="display: block; padding: 10px 16px; color: var(--danger-color); font-size: 13px;" onclick="return confirm('Вы уверены, что хотите выйти?')">
                     🚪 Выйти
                 </a>
             </div>
