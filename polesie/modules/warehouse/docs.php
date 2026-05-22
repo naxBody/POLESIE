@@ -626,7 +626,7 @@ $notificationCount = count($notificationList);
                                 }
                                 $gostLink = asset('assets/gosts/' . $gostFileName);
                             ?>
-                            <div class="standard-card-wrapper">
+                            <div class="standard-card-wrapper" style="position: relative;">
                                 <a href="<?= $gostLink ?>" target="_blank" class="standard-card-link" style="text-decoration: none; color: inherit; display: block;">
                                     <div class="standard-card" 
                                          data-gost="<?= e(mb_strtolower($gost['gost_number'], 'UTF-8')) ?>" 
@@ -638,18 +638,17 @@ $notificationCount = count($notificationList);
                                         </div>
                                         <div class="standard-title"><?= e($gost['title']) ?></div>
                                         <div class="standard-category">📁 <?= e($gost['category']) ?></div>
-                                        <div class="standard-card-footer">
-                                            <button class="btn-icon edit-gost-btn" 
-                                                    onclick="event.stopPropagation(); openEditModal(<?= $index ?>);" 
-                                                    title="Редактировать"
-                                                    style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast);"
-                                                    onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
-                                                    onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
-                                                ✏️
-                                            </button>
-                                        </div>
+                                        <div class="standard-card-footer"></div>
                                     </div>
                                 </a>
+                                <button class="btn-icon edit-gost-btn" 
+                                        onclick="openEditModal(<?= $index ?>);" 
+                                        title="Редактировать"
+                                        style="position: absolute; bottom: 12px; right: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all var(--transition-fast); z-index: 10;"
+                                        onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'"
+                                        onmouseout="this.style.background='var(--bg-primary)'; this.style.color='var(--text-primary)'">
+                                    ✏️
+                                </button>
                             </div>
                             <?php endforeach; ?>
                         </div>
