@@ -10,7 +10,7 @@ session_start();
 
 // Проверка авторизации
 if (!isLoggedIn()) {
-    redirect('/polesie/login.php');
+    redirect(APP_URL . '/login.php');
 }
 
 $user = getCurrentUser();
@@ -84,6 +84,15 @@ $notificationList = $notifications->fetchAll();
 $notificationCount = count($notificationList);
 
 $pageTitle = 'Панель управления';
+
+// Функция для получения относительного пути
+function asset($path) {
+    return APP_URL . '/' . ltrim($path, '/');
+}
+
+function pageUrl($path) {
+    return APP_URL . '/' . ltrim($path, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -92,7 +101,7 @@ $pageTitle = 'Панель управления';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/polesie/assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
 <body>
     <div class="app-container">
@@ -159,7 +168,7 @@ $pageTitle = 'Панель управления';
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Последние заказы</h3>
-                            <a href="/polesie/modules/orders/list.php" class="btn btn-sm btn-secondary">Все заказы</a>
+                            <a href="<?= pageUrl('modules/orders/list.php') ?>" class="btn btn-sm btn-secondary">Все заказы</a>
                         </div>
                         <div class="card-body" style="padding: 0;">
                             <div class="table-responsive">
@@ -195,7 +204,7 @@ $pageTitle = 'Панель управления';
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Производственные задания</h3>
-                            <a href="/polesie/modules/production/list.php" class="btn btn-sm btn-secondary">Все задания</a>
+                            <a href="<?= pageUrl('modules/production/list.php') ?>" class="btn btn-sm btn-secondary">Все задания</a>
                         </div>
                         <div class="card-body" style="padding: 0;">
                             <div class="table-responsive">
@@ -231,6 +240,6 @@ $pageTitle = 'Панель управления';
         </div>
     </div>
     
-    <script src="/polesie/assets/js/main.js"></script>
+    <script src="<?= asset('assets/js/main.js') ?>"></script>
 </body>
 </html>
