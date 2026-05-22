@@ -348,6 +348,169 @@ $notificationCount = count($notificationList);
         color: var(--text-secondary);
         font-size: 14px;
     }
+    
+    /* Стили модального окна загрузки */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-window {
+        background: var(--bg-primary);
+        border-radius: var(--border-radius-lg);
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: var(--shadow-xl);
+        position: relative;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition: color var(--transition-fast);
+    }
+    
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .form-input, .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        font-size: 14px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all var(--transition-fast);
+    }
+    
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .form-input::file-selector-button {
+        padding: 8px 16px;
+        border-radius: var(--border-radius-lg);
+        border: none;
+        background: var(--primary-color);
+        color: white;
+        cursor: pointer;
+        margin-right: 12px;
+        transition: background var(--transition-fast);
+    }
+    
+    .form-input::file-selector-button:hover {
+        background: var(--primary-hover);
+    }
+    
+    .upload-status {
+        padding: 12px 16px;
+        border-radius: var(--border-radius-lg);
+        margin-top: 16px;
+        font-size: 14px;
+        display: none;
+    }
+    
+    .upload-status.success {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    
+    .upload-status.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: var(--border-radius-lg);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+        background: var(--gray-200);
+        color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+        background: var(--gray-300);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+    }
+    
+    .help-text {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 6px;
+    }
     </style>
 </head>
 <body>
@@ -370,8 +533,13 @@ $notificationCount = count($notificationList);
                     
                     <!-- Секция: ГОСТы -->
                     <div id="gost-section" class="doc-section active">
-                        <div class="search-box">
-                            <input type="text" class="search-input" placeholder="🔍 Поиск ГОСТа..." onkeyup="filterStandards(this.value)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <div class="search-box" style="margin-bottom: 0;">
+                                <input type="text" class="search-input" placeholder="🔍 Поиск ГОСТа..." onkeyup="filterStandards(this.value)">
+                            </div>
+                            <button class="btn btn-primary" onclick="openUploadModal()" style="padding: 12px 24px; border-radius: var(--border-radius-lg); font-weight: 500;">
+                                📤 Загрузить ГОСТ
+                            </button>
                         </div>
                         
                         <div class="standards-grid" id="standardsGrid">
@@ -489,6 +657,66 @@ $notificationCount = count($notificationList);
         </div>
     </div>
     
+    <!-- Модальное окно загрузки ГОСТ -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3 class="modal-title">📤 Загрузка нового ГОСТа</h3>
+                <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+            </div>
+            
+            <form id="uploadForm" onsubmit="submitGostUpload(event)" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label" for="gost_number">Номер ГОСТ *</label>
+                    <input type="text" class="form-input" id="gost_number" name="gost_number" placeholder="Например: ГОСТ 7798-70" required>
+                    <div class="help-text">Укажите полный номер стандарта</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="title">Название стандарта *</label>
+                    <input type="text" class="form-input" id="title" name="title" placeholder="Например: Болты с шестигранной головкой" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="category">Категория *</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="">Выберите категорию</option>
+                        <option value="Крепёжные изделия">Крепёжные изделия</option>
+                        <option value="Прокат">Прокат</option>
+                        <option value="Трубы">Трубы</option>
+                        <option value="Листовой металл">Листовой металл</option>
+                        <option value="Электротехнические материалы">Электротехнические материалы</option>
+                        <option value="Изоляционные материалы">Изоляционные материалы</option>
+                        <option value="Лакокрасочные материалы">Лакокрасочные материалы</option>
+                        <option value="Другое">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="status">Статус</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="Действующий">Действующий</option>
+                        <option value="Заменён">Заменён</option>
+                        <option value="Отменён">Отменён</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="gost_file">Файл PDF *</label>
+                    <input type="file" class="form-input" id="gost_file" name="gost_file" accept=".pdf,application/pdf" required>
+                    <div class="help-text">Максимальный размер файла: 50 MB</div>
+                </div>
+                
+                <div id="uploadStatus" class="upload-status"></div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Отмена</button>
+                    <button type="submit" class="btn btn-primary">📤 Загрузить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
     function switchTab(tabName) {
         // Убираем активный класс со всех вкладок
@@ -545,6 +773,103 @@ $notificationCount = count($notificationList);
                 item.style.display = 'none';
             }
         });
+    }
+    
+    // Модальное окно загрузки ГОСТ
+    function openUploadModal() {
+        document.getElementById('uploadModal').style.display = 'flex';
+    }
+    
+    function closeUploadModal() {
+        document.getElementById('uploadModal').style.display = 'none';
+        document.getElementById('uploadForm').reset();
+        clearUploadStatus();
+    }
+    
+    function clearUploadStatus() {
+        const statusEl = document.getElementById('uploadStatus');
+        if (statusEl) {
+            statusEl.className = 'upload-status';
+            statusEl.textContent = '';
+        }
+    }
+    
+    async function submitGostUpload(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const statusEl = document.getElementById('uploadStatus');
+        
+        // Валидация на клиенте
+        const gostNumber = form.gost_number.value.trim();
+        const title = form.title.value.trim();
+        const category = form.category.value.trim();
+        const file = form.gost_file.files[0];
+        
+        if (!gostNumber || !title || !category) {
+            showUploadStatus('Заполните все обязательные поля', 'error');
+            return;
+        }
+        
+        if (!file) {
+            showUploadStatus('Выберите файл для загрузки', 'error');
+            return;
+        }
+        
+        if (file.type !== 'application/pdf') {
+            showUploadStatus('Разрешены только PDF файлы', 'error');
+            return;
+        }
+        
+        if (file.size > 50 * 1024 * 1024) {
+            showUploadStatus('Файл слишком большой (максимум 50 MB)', 'error');
+            return;
+        }
+        
+        // Блокируем кнопку отправки
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Загрузка...';
+        
+        try {
+            const response = await fetch('upload_gost.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showUploadStatus('✅ ' + result.message, 'success');
+                setTimeout(() => {
+                    closeUploadModal();
+                    location.reload(); // Перезагружаем страницу для обновления списка
+                }, 1500);
+            } else {
+                showUploadStatus('❌ ' + result.message, 'error');
+            }
+        } catch (error) {
+            showUploadStatus('❌ Ошибка сети: ' + error.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '📤 Загрузить';
+        }
+    }
+    
+    function showUploadStatus(message, type) {
+        const statusEl = document.getElementById('uploadStatus');
+        statusEl.textContent = message;
+        statusEl.className = 'upload-status ' + type;
+        statusEl.style.display = 'block';
+    }
+    
+    // Закрытие модального окна по клику вне его
+    window.onclick = function(event) {
+        const modal = document.getElementById('uploadModal');
+        if (event.target === modal) {
+            closeUploadModal();
+        }
     }
     </script>
 </body>

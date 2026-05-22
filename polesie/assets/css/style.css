@@ -6,6 +6,7 @@
 :root {
     /* Цветовая палитра */
     --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
     --primary-dark: #1e40af;
     --primary-light: #3b82f6;
     --secondary-color: #64748b;
