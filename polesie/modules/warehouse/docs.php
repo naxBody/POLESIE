@@ -30,6 +30,13 @@ if (file_exists($docsPath)) {
 
 $abbreviations = $docsData['abbreviation_decodings'] ?? [];
 $gostStandards = $docsData['gost_standards'] ?? [];
+
+// Фильтруем зарезервированные категории (начинаются с _CATEGORY_)
+$gostStandards = array_filter($gostStandards, function($gost) {
+    return !isset($gost['gost_number']) || strpos($gost['gost_number'], '_CATEGORY_') !== 0;
+});
+$gostStandards = array_values($gostStandards); // Переиндексируем массив
+
 $allAbbreviations = $materialsData['all_abbreviations'] ?? [];
 
 // Загружаем полную структуру кодов из list_materials.json
@@ -786,6 +793,9 @@ $notificationCount = count($notificationList);
                         <button type="button" class="btn btn-secondary" onclick="addNewCategory()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
                             ➕
                         </button>
+                        <button type="button" class="btn btn-secondary" onclick="deleteCategory()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Удалить выбранную категорию">
+                            🗑️
+                        </button>
                     </div>
                 </div>
                 
@@ -862,6 +872,9 @@ $notificationCount = count($notificationList);
                         </select>
                         <button type="button" class="btn btn-secondary" onclick="addNewCategoryEdit()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Добавить новую категорию">
                             ➕
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="deleteCategoryEdit()" style="padding: 10px 14px; border-radius: var(--border-radius-lg);" title="Удалить выбранную категорию">
+                            🗑️
                         </button>
                     </div>
                 </div>
@@ -1001,11 +1014,80 @@ $notificationCount = count($notificationList);
                 newOption.textContent = trimmedName;
                 select.appendChild(newOption);
                 select.value = trimmedName;
-                alert('✅ Категория "' + trimmedName + '" добавлена');
+                
+                // Сохраняем категорию в JSON файл
+                fetch('upload_gost.php?action=add_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category: trimmedName })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('✅ Категория "' + trimmedName + '" добавлена и сохранена');
+                        // Обновляем списки категорий после добавления
+                        updateCategorySelects();
+                    } else {
+                        alert('⚠️ Категория добавлена в список, но не сохранена: ' + result.message);
+                        // Всё равно обновляем списки
+                        updateCategorySelects();
+                    }
+                })
+                .catch(error => {
+                    alert('⚠️ Категория добавлена в список, но ошибка сохранения: ' + error.message);
+                    // Всё равно обновляем списки
+                    updateCategorySelects();
+                });
             } else {
                 alert('⚠️ Такая категория уже существует');
                 select.value = trimmedName;
             }
+        }
+    }
+    
+    function deleteCategory() {
+        const select = document.getElementById('category');
+        const currentValue = select.value;
+        
+        if (!currentValue) {
+            alert('⚠️ Выберите категорию для удаления');
+            return;
+        }
+        
+        // Нельзя удалить пустое значение
+        if (currentValue === '') {
+            alert('⚠️ Нельзя удалить эту категорию');
+            return;
+        }
+        
+        if (confirm('Вы уверены, что хотите удалить категорию "' + currentValue + '"? Это действие нельзя отменить.')) {
+            // Удаляем категорию из JSON файла
+            fetch('upload_gost.php?action=delete_category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category: currentValue })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('✅ Категория "' + currentValue + '" удалена');
+                    // Обновляем списки категорий после удаления
+                    updateCategorySelects();
+                } else {
+                    alert('⚠️ Категория удалена из списка, но ошибка при удалении из файла: ' + result.message);
+                    // Всё равно обновляем списки
+                    updateCategorySelects();
+                }
+            })
+            .catch(error => {
+                alert('⚠️ Категория удалена из списка, но ошибка сети: ' + error.message);
+                // Всё равно обновляем списки
+                updateCategorySelects();
+            });
         }
     }
     
@@ -1039,6 +1121,63 @@ $notificationCount = count($notificationList);
     
     // Массив данных ГОСТ для редактирования
     let gostStandardsData = <?= json_encode($gostStandards, JSON_UNESCAPED_UNICODE) ?>;
+    
+    // Получение уникальных категорий из ГОСТов
+    function getUniqueCategories() {
+        const categories = new Set();
+        gostStandardsData.forEach(gost => {
+            if (gost.category && !gost.gost_number.startsWith('_CATEGORY_')) {
+                categories.add(gost.category);
+            }
+        });
+        return Array.from(categories).sort();
+    }
+    
+    // Обновление списков категорий в формах
+    function updateCategorySelects() {
+        const categories = getUniqueCategories();
+        const defaultCategories = [
+            "Крепёжные изделия", "Прокат", "Трубы", "Листовой металл",
+            "Электротехнические материалы", "Изоляционные материалы",
+            "Лакокрасочные материалы", "Металлопрокат", "Металлы",
+            "Подшипники", "Сварочные материалы", "Масла и смазки",
+            "Инструмент", "Другое"
+        ];
+        
+        // Объединяем стандартные категории с пользовательскими
+        const allCategories = [...new Set([...defaultCategories, ...categories])].sort();
+        
+        // Обновляем select в форме добавления
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) {
+            const currentValue = categorySelect.value;
+            categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+            if (currentValue) categorySelect.value = currentValue;
+        }
+        
+        // Обновляем select в форме редактирования
+        const editCategorySelect = document.getElementById('edit_category');
+        if (editCategorySelect) {
+            const currentValue = editCategorySelect.value;
+            editCategorySelect.innerHTML = '<option value="">Выберите категорию</option>';
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                editCategorySelect.appendChild(option);
+            });
+            if (currentValue) editCategorySelect.value = currentValue;
+        }
+    }
+    
+    // Вызываем при загрузке страницы
+    updateCategorySelects();
     
     // Модальное окно редактирования ГОСТ
     function openEditModal(index) {
@@ -1100,11 +1239,80 @@ $notificationCount = count($notificationList);
                 newOption.textContent = trimmedName;
                 select.appendChild(newOption);
                 select.value = trimmedName;
-                alert('✅ Категория "' + trimmedName + '" добавлена');
+                
+                // Сохраняем категорию в JSON файл
+                fetch('upload_gost.php?action=add_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category: trimmedName })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('✅ Категория "' + trimmedName + '" добавлена и сохранена');
+                        // Обновляем списки категорий после добавления
+                        updateCategorySelects();
+                    } else {
+                        alert('⚠️ Категория добавлена в список, но не сохранена: ' + result.message);
+                        // Всё равно обновляем списки
+                        updateCategorySelects();
+                    }
+                })
+                .catch(error => {
+                    alert('⚠️ Категория добавлена в список, но ошибка сохранения: ' + error.message);
+                    // Всё равно обновляем списки
+                    updateCategorySelects();
+                });
             } else {
                 alert('⚠️ Такая категория уже существует');
                 select.value = trimmedName;
             }
+        }
+    }
+    
+    function deleteCategoryEdit() {
+        const select = document.getElementById('edit_category');
+        const currentValue = select.value;
+        
+        if (!currentValue) {
+            alert('⚠️ Выберите категорию для удаления');
+            return;
+        }
+        
+        // Нельзя удалить пустое значение
+        if (currentValue === '') {
+            alert('⚠️ Нельзя удалить эту категорию');
+            return;
+        }
+        
+        if (confirm('Вы уверены, что хотите удалить категорию "' + currentValue + '"? Это действие нельзя отменить.')) {
+            // Удаляем категорию из JSON файла
+            fetch('upload_gost.php?action=delete_category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category: currentValue })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('✅ Категория "' + currentValue + '" удалена');
+                    // Обновляем списки категорий после удаления
+                    updateCategorySelects();
+                } else {
+                    alert('⚠️ Категория удалена из списка, но ошибка при удалении из файла: ' + result.message);
+                    // Всё равно обновляем списки
+                    updateCategorySelects();
+                }
+            })
+            .catch(error => {
+                alert('⚠️ Категория удалена из списка, но ошибка сети: ' + error.message);
+                // Всё равно обновляем списки
+                updateCategorySelects();
+            });
         }
     }
     
