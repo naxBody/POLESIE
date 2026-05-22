@@ -437,10 +437,57 @@ $notificationCount = count($notificationList);
         cursor: pointer;
         margin-right: 12px;
         transition: background var(--transition-fast);
+        font-weight: 500;
     }
     
     .form-input::file-selector-button:hover {
         background: var(--primary-hover);
+    }
+    
+    /* Кастомный стиль для области загрузки файла */
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 24px;
+        text-align: center;
+        transition: all var(--transition-fast);
+        background: var(--bg-primary);
+    }
+    
+    .file-upload-wrapper:hover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+    
+    .file-upload-wrapper.has-file {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.05);
+    }
+    
+    .file-upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        color: var(--text-secondary);
+    }
+    
+    .file-upload-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+    
+    .file-upload-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    
+    .file-name-display {
+        font-size: 13px;
+        color: var(--primary-color);
+        font-weight: 500;
+        margin-top: 8px;
+        word-break: break-all;
     }
     
     .upload-status {
@@ -703,8 +750,13 @@ $notificationCount = count($notificationList);
                 
                 <div class="form-group">
                     <label class="form-label" for="gost_file">Файл PDF *</label>
-                    <input type="file" class="form-input" id="gost_file" name="gost_file" accept=".pdf,application/pdf" required>
-                    <div class="help-text">Максимальный размер файла: 50 MB</div>
+                    <div class="file-upload-wrapper" id="fileUploadWrapper" onclick="document.getElementById('gost_file').click()">
+                        <div class="file-upload-icon">📄</div>
+                        <div class="file-upload-text">Перетащите файл сюда или кликните для выбора</div>
+                        <div class="file-upload-hint">Максимальный размер файла: 50 MB</div>
+                        <div class="file-name-display" id="fileNameDisplay"></div>
+                        <input type="file" id="gost_file" name="gost_file" accept=".pdf,application/pdf" required style="display: none;">
+                    </div>
                 </div>
                 
                 <div id="uploadStatus" class="upload-status"></div>
@@ -784,6 +836,7 @@ $notificationCount = count($notificationList);
         document.getElementById('uploadModal').style.display = 'none';
         document.getElementById('uploadForm').reset();
         clearUploadStatus();
+        clearFileDisplay();
     }
     
     function clearUploadStatus() {
@@ -794,12 +847,79 @@ $notificationCount = count($notificationList);
         }
     }
     
+    function clearFileDisplay() {
+        const wrapper = document.getElementById('fileUploadWrapper');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const fileInput = document.getElementById('gost_file');
+        
+        if (wrapper) wrapper.classList.remove('has-file');
+        if (fileNameDisplay) fileNameDisplay.textContent = '';
+        if (fileInput) fileInput.value = '';
+    }
+    
+    // Обработчик выбора файла
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('gost_file');
+        const wrapper = document.getElementById('fileUploadWrapper');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        
+        if (fileInput && wrapper && fileNameDisplay) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    wrapper.classList.add('has-file');
+                    fileNameDisplay.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
+                } else {
+                    wrapper.classList.remove('has-file');
+                    fileNameDisplay.textContent = '';
+                }
+            });
+            
+            // Drag and drop
+            wrapper.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                wrapper.style.borderColor = 'var(--primary-color)';
+                wrapper.style.background = 'rgba(37, 99, 235, 0.1)';
+            });
+            
+            wrapper.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                wrapper.style.borderColor = '';
+                wrapper.style.background = '';
+            });
+            
+            wrapper.addEventListener('drop', function(e) {
+                e.preventDefault();
+                wrapper.style.borderColor = '';
+                wrapper.style.background = '';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        }
+    });
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    }
+    
     async function submitGostUpload(event) {
         event.preventDefault();
         
         const form = event.target;
         const formData = new FormData(form);
         const statusEl = document.getElementById('uploadStatus');
+        
+        // Очищаем предыдущий статус
+        clearUploadStatus();
         
         // Валидация на клиенте
         const gostNumber = form.gost_number.value.trim();
@@ -808,35 +928,40 @@ $notificationCount = count($notificationList);
         const file = form.gost_file.files[0];
         
         if (!gostNumber || !title || !category) {
-            showUploadStatus('Заполните все обязательные поля', 'error');
+            showUploadStatus('⚠️ Заполните все обязательные поля', 'error');
             return;
         }
         
         if (!file) {
-            showUploadStatus('Выберите файл для загрузки', 'error');
+            showUploadStatus('⚠️ Выберите файл для загрузки', 'error');
             return;
         }
         
-        if (file.type !== 'application/pdf') {
-            showUploadStatus('Разрешены только PDF файлы', 'error');
+        if (file.type !== 'application/pdf' && file.type !== 'application/x-pdf') {
+            showUploadStatus('⚠️ Разрешены только PDF файлы', 'error');
             return;
         }
         
         if (file.size > 50 * 1024 * 1024) {
-            showUploadStatus('Файл слишком большой (максимум 50 MB)', 'error');
+            showUploadStatus('⚠️ Файл слишком большой (максимум 50 MB)', 'error');
             return;
         }
         
         // Блокируем кнопку отправки
         const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Загрузка...';
+        submitBtn.innerHTML = '⏳ Загрузка...';
         
         try {
-            const response = await fetch('upload_gost.php', {
+            const response = await fetch('modules/warehouse/upload_gost.php', {
                 method: 'POST',
                 body: formData
             });
+            
+            if (!response.ok) {
+                throw new Error('HTTP ошибка: ' + response.status);
+            }
             
             const result = await response.json();
             
@@ -853,7 +978,7 @@ $notificationCount = count($notificationList);
             showUploadStatus('❌ Ошибка сети: ' + error.message, 'error');
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = '📤 Загрузить';
+            submitBtn.textContent = originalBtnText;
         }
     }
     
@@ -871,6 +996,16 @@ $notificationCount = count($notificationList);
             closeUploadModal();
         }
     }
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('uploadModal');
+            if (modal && modal.style.display === 'flex') {
+                closeUploadModal();
+            }
+        }
+    });
     </script>
 </body>
 </html>
